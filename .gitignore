@@ -2,3 +2,7 @@ eclipse-settings.xml
 .cproject
 .project
 .settings
+*.o
+*.pb.*
+*.d
+
