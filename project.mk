@@ -36,7 +36,7 @@ CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
 CFLAGS =
 
 # linker options
-LDFLAGS = -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T$(LINKSCRIPT)
+LDFLAGS = -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -mcpu=cortex-m4 -mthumb -T$(LINKSCRIPT) 
 
 # additional libraries to link
 LIBS = -lm
@@ -47,3 +47,11 @@ CXX = $(abspath $(COMPILERPATH))/arm-none-eabi-g++
 OBJCOPY = $(abspath $(COMPILERPATH))/arm-none-eabi-objcopy
 SIZE = $(abspath $(COMPILERPATH))/arm-none-eabi-size
 
+PROTOC = protoc 
+PYTHON = python 
+
+#COMPILER_PREFIX = arm-linux-gnueabi
+#CC = $(COMPILER_PREFIX)-gcc
+#CXX = $(COMPILER_PREFIX)-g++
+#OBJCOPY = $(COMPILER_PREFIX)-objcopy
+#SIZE = $(COMPILER_PREFIX)-size

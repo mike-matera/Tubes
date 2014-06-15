@@ -1,6 +1,6 @@
 PLATFORM = Teensy3.0
 
-SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Programs
+SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Programs Protocol
 
 TARGET = main
 
@@ -37,7 +37,7 @@ $(TARGET).elf: $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
 -include $(OBJS:.o=.d)
 
 clean: BUILDTYPE = clean
-clean: $(SUBDIRS) 
+clean:: $(SUBDIRS) 
 	rm -f *.o *.d $(TARGET).elf $(TARGET).hex make.defs
 
 .PHONY: $(SUBDIRS) clean mrproper $(TARGET).elf
