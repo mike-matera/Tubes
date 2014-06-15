@@ -5,4 +5,7 @@ eclipse-settings.xml
 *.o
 *.pb.*
 *.d
+main.elf
+main.hex
+make.defs
 
