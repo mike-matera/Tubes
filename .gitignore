@@ -8,4 +8,4 @@ eclipse-settings.xml
 main.elf
 main.hex
 make.defs
-
+*.pyc
