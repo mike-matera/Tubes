@@ -8,15 +8,15 @@
 #ifndef TESTPROGRAM_H_
 #define TESTPROGRAM_H_
 
-#include "Program.h"
+#include "Renderable.h"
 
-class TestProgram: public Program {
+class TestProgram: public Renderable {
 public:
 	TestProgram();
 	virtual ~TestProgram();
 
 public:
-	virtual void render();
+	virtual int render(raster);
 
 private:
 	int led;

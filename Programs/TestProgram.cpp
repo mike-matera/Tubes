@@ -6,7 +6,6 @@
  */
 
 #include "TestProgram.h"
-#include "leds.h"
 
 TestProgram::TestProgram() {
 	led = 0;
@@ -16,9 +15,14 @@ TestProgram::~TestProgram() {
 	// TODO Auto-generated destructor stub
 }
 
-void TestProgram::render() {
-	led_set(led, 0);
+int TestProgram::render(raster leds) {
+	leds[led].h = 0;
+	leds[led].s = 0;
+	leds[led].v = 0;
 	led++;
 	led = led % nLEDs;
-	led_set(led, 0xffffff);
+	leds[led].h = 0;
+	leds[led].s = 0;
+	leds[led].v = 255;
+	return 100;
 }

@@ -9,9 +9,15 @@
 
 Sparkle::Sparkle() {
 	ca = new CellularAuto(nLEDs);
+	color_pos = 0;
+}
+
+Sparkle::~Sparkle() {
+	delete ca;
+}
+
+void Sparkle::setup() {
 	color_pos = ((float) random(256)) / (256.0 / 6.0);
-	// Set CA based on private random seed
-	ca->Reset();
 	ca->Set(random(32));
 	ca->Set(random(32));
 	for (int i=random(3); i>0; i--) {
@@ -19,11 +25,11 @@ Sparkle::Sparkle() {
 	}
 }
 
-Sparkle::~Sparkle() {
-	delete ca;
+void Sparkle::teardown() {
+	ca->Reset();
 }
 
-void Sparkle::render() {
+int Sparkle::render(raster leds) {
 	if (color_pos < 6) {
 		color_pos += 0.0001;
 	}else{
@@ -44,11 +50,12 @@ void Sparkle::render() {
 		float end = floor(collected_offset[j]);
 		float deriv = start - end;
 
-		// XXX Intensity limiting
 		float value = fmod(collected_offset[j],1);
 		if (value > 0.25 && deriv < 0.9) value = 0;
 
-		mike::HSV foo(color_pos+(0.001*j)+deriv*3, 1, value);
-		led_set(j, foo.toColor());
+		leds[j].h = ((color_pos+(0.001*j)+deriv*3) / 6) * 255;
+		leds[j].s = 255;
+		leds[j].v = value * 255;
 	}
+	return 33;
 }

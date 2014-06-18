@@ -3,41 +3,40 @@
 #include "Programs/Sparkle.h"
 #include "Programs/TestProgram.h"
 #include "usb_serial.h"
-
-static IntervalTimer timer;
-volatile static int do_next_frame = 0;
+#include <vector>
 
 #define INPUTMAX 256
 static char input[INPUTMAX];
 static int pos = 0;
 
-static Program *p = NULL;
+typedef struct {
+	Renderable *r;
+	uint32_t t;
+} res;
 
-void timeExpired() {
-	do_next_frame++;
-	if (do_next_frame > 1) {
-		digitalWriteFast(13, HIGH);
-	}else{
-		digitalWriteFast(13, LOW);
-	}
-}
+static std::vector<res> Programs;
+static CHSV DrawMem[nLEDs];
 
-void setProgram(Program *n, float fps) {
-	if (p != NULL) {
-		timer.end();
-		delete p;
+void clear_programs() {
+	for (std::vector<res>::iterator it = Programs.begin(); it != Programs.end(); it++) {
+		(*it).r->teardown();
+		delete (*it).r;
 	}
-	p = n;
-	timer.begin(timeExpired, (1 / fps) * 1000000);
+	Programs.clear();
 }
 
 void emit() {
+	res n;
 	if (strncmp("test", input, INPUTMAX) == 0) {
-		TestProgram *p = new TestProgram();
-		setProgram(p, 10);
+		clear_programs();
+		n = {new TestProgram(), 0};
+		n.r->setup();
+		Programs.push_back(n);
 	}else if (strncmp("sparkle", input, INPUTMAX) == 0) {
-		Sparkle *s = new Sparkle();
-		setProgram(s, 30);
+		clear_programs();
+		n = {new Sparkle(), 0};
+		n.r->setup();
+		Programs.push_back(n);
 	}
 	Serial.printf("Your options are:\r\n");
 	Serial.printf("\ttest - Run a test pattern\r\n");
@@ -76,23 +75,22 @@ extern "C" int main(void)
 
 	Serial.begin(115200);
 
-	do_next_frame = 0;
-
 	while (1) {
-
-		// Do this to park:
-		//asm volatile ("WFI");
-
-		// Do this to dither:
-		led_show();
-
-		// Be sure to run the menu
+		// Make sure the menu gets love
 		menu();
 
-		if (do_next_frame && p != NULL) {
-			do_next_frame = 0;
-			p->render();
-			led_show();
+		// Run the programs
+		for (std::vector<res>::iterator it = Programs.begin(); it != Programs.end(); it++) {
+			res &r = *it;
+			if (r.t <= systick_millis_count)
+				r.t = r.r->render(DrawMem) + systick_millis_count;
 		}
+
+		// Render the HSV buffer onto our RGB pixels
+		for (int i=0; i<nLEDs; i++) {
+			led_set(i, DrawMem[i]);
+		}
+
+		led_show();
 	}
 }

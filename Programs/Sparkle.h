@@ -8,18 +8,20 @@
 #ifndef SPARKLE_H_
 #define SPARKLE_H_
 
-#include "Program.h"
+#include "Renderable.h"
 #include "CellularAuto.h"
 #include "ColorUtil.h"
 #include "leds.h"
 
-class Sparkle : public Program {
+class Sparkle : public Renderable {
 public:
 	Sparkle();
 	virtual ~Sparkle();
 
 public:
-	virtual void render();
+	virtual void setup();
+	virtual int render(raster leds);
+	virtual void teardown();
 
 private:
 	CellularAuto *ca;

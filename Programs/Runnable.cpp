@@ -5,10 +5,10 @@
  *      Author: maximus
  */
 
-#include "Program.h"
+#include "Runnable.h"
 
-Program::Program() {
+Runnable::Runnable() {
 }
 
-Program::~Program() {
+Runnable::~Runnable() {
 }
