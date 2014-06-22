@@ -2,6 +2,7 @@
 #include "leds.h"
 #include "Programs/Sparkle.h"
 #include "Programs/TestProgram.h"
+#include "Programs/Melt.h"
 #include "usb_serial.h"
 #include <vector>
 
@@ -37,10 +38,16 @@ void emit() {
 		n = {new Sparkle(), 0};
 		n.r->setup();
 		Programs.push_back(n);
+	}else if (strncmp("melt", input, INPUTMAX) == 0) {
+		clear_programs();
+		n = {new Melt(), 0};
+		n.r->setup();
+		Programs.push_back(n);
 	}
 	Serial.printf("Your options are:\r\n");
 	Serial.printf("\ttest - Run a test pattern\r\n");
-	Serial.printf("\tsparkle - Run a Mike's sparkle pattern\r\n");
+	Serial.printf("\tsparkle - Run Mike's sparkle pattern\r\n");
+	Serial.printf("\tmelt - Run casey's melt pattern\r\n");
 	Serial.printf("\r\n>");
 }
 
