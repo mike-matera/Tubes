@@ -8,7 +8,8 @@
 #include "Melt.h"
 
 Melt::Melt() {
-	valueTracker = hueTracker = 0;
+	valueTracker = random16();
+	hueTracker = random16();
 	perlins = new Perlins();
 }
 
@@ -26,7 +27,6 @@ void Melt::teardown() {
 int Melt::render(raster leds) {
 	float value, hue;
 
-    random16_add_entropy(random());
     valueTracker += 0.001;
     hueTracker += 0.0001;
 
