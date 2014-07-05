@@ -25,8 +25,7 @@ public:
 
 private:
 	CellularAuto *ca;
-	float collected_offset[nLEDs];
-	float color_pos;
+	int collected_offset[nLEDs];
 };
 
 #endif /* SPARKLE_H_ */

@@ -24,5 +24,5 @@ int TestProgram::render(raster leds) {
 	leds[led].h = 0;
 	leds[led].s = 0;
 	leds[led].v = 255;
-	return 100;
+	return 10;
 }
