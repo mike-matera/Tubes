@@ -8,6 +8,7 @@
 #include "Melt.h"
 
 Melt::Melt() {
+    random16_add_entropy(random());
 	valueTracker = random16();
 	hueTracker = random16();
 	perlins = new Perlins();

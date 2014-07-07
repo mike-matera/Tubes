@@ -48,11 +48,22 @@ void emit() {
 		n = {new Melt(), 0};
 		n.r->setup();
 		Programs.push_back(n);
+	}else if (strncmp("sparklemelt", input, INPUTMAX) == 0) {
+		clear_programs();
+        n = {new Melt(), 0};
+        n.r->setup();
+        Programs.push_back(n);
+
+        n = {new Sparkle(), 0};
+        n.r->setup();
+        Programs.push_back(n);
 	}
+
 	Serial.printf("Your options are:\r\n");
 	Serial.printf("\ttest - Run a test pattern\r\n");
 	Serial.printf("\tsparkle - Run Mike's sparkle pattern\r\n");
 	Serial.printf("\tmelt - Run casey's melt pattern\r\n");
+	Serial.printf("\tsparklemelt - yep\r\n");
 	Serial.printf("\txbee - Connect serial to XBee\r\n");
 	Serial.printf("\r\n>");
 }
@@ -84,7 +95,7 @@ extern "C" int main(void)
 	}
 	led_show();
 	analogReference(DEFAULT);
-	randomSeed(analogRead(12));
+	randomSeed(analogRead(8));
 
 	Serial.begin(115200);
 	Serial1.begin(9600);
