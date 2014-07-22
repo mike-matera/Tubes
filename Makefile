@@ -1,4 +1,5 @@
 PLATFORM = Teensy3.1
+BOARD = Candle.B
 
 SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Lib Programs Protocol XBeeAPI
 

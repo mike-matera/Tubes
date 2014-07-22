@@ -17,6 +17,10 @@ OPTIONS = $(CLOCK) -DUSB_SERIAL -DLAYOUT_US_ENGLISH
 # options needed by many Arduino libraries to configure for Teensy 3.0
 OPTIONS += $(CHIP) -DARDUINO=105 -DTEENSYDUINO=118
 
+ifeq ($(strip $(BOARD)), Candle.B)
+	OPTIONS += -DCANDLE_REV_B
+endif
+
 # Path to your arduino installation
 ARDUINOPATH ?= /home/maximus/Arduino/arduino-1.0.5
 
