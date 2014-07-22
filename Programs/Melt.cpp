@@ -8,6 +8,7 @@
 #include "Melt.h"
 
 Melt::Melt() {
+    random16_add_entropy(random());
 	valueTracker = random16();
 	hueTracker = random16();
 	perlins = new Perlins();
@@ -49,6 +50,8 @@ int Melt::render(raster leds) {
 
         // <minty> adjust to 1 - 255
         leds[i].h = (hue * 127) + 128;
+        // <minty> adjust to 75 - 225
+        //leds[i].h = ((hue + (double)2) * 75);
         leds[i].s = 255;
         leds[i].v = (value * (double) 127) + 128;
     }
