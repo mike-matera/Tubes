@@ -1,6 +1,6 @@
 PLATFORM = Teensy3.1
 
-SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Lib Programs Protocol XBeeAPI
+SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Lib Programs Protocol
 
 TARGET = main
 
