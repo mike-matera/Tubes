@@ -74,6 +74,7 @@ void menu() {
 	}
 }
 
+s
 extern "C" int main(void)
 {
 	// Setup code...
@@ -99,15 +100,14 @@ extern "C" int main(void)
 	n.r->setup();
 	Programs.push_back(n);
 
+	emit();
 	while (1) {
 		if (xbee_connect) {
 			if (Serial.available()) {
-				Serial1.write((uint8_t) Serial.read());
-				Serial1.flush();
+				Serial1.write((unsigned char *) input, Serial.readBytes(input, INPUTMAX));
 			}
 			if (Serial1.available()) {
-				Serial.write((uint8_t) Serial1.read());
-				Serial.flush();
+				Serial.write((unsigned char *) input, Serial1.readBytes(input, INPUTMAX));
 			}
 			continue;
 		}
