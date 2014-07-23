@@ -9,10 +9,11 @@
 #define ENVIRONMENT_H_
 
 #include <vector>
+#include <stdint.h>
 
 #define ENVMAX 64
 
-typedef const char * (*getter) (const char *);
+typedef void (*getter) (const char *, char(*)[ENVMAX]);
 typedef void (*setter) (const char *, const char *);
 
 class Environment {
@@ -32,6 +33,7 @@ private:
 	} entry;
 
 	std::vector<entry> env;
+	char buffer[ENVMAX];
 };
 
 extern Environment Env;

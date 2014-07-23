@@ -35,7 +35,8 @@ const char *Environment::get(const char *var)
 	for (std::vector<entry>::iterator it = env.begin(); it != env.end(); it++) {
 		const char *v = (*it).var;
 		if (strncmp(v, var, ENVMAX) == 0)
-			return (*it).g(var);
+			(*it).g(var, &buffer);
+			return buffer;
 	}
 	return NULL;
 }
