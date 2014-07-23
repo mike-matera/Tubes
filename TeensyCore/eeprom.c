@@ -40,7 +40,7 @@
 // (aligned to 2 or 4 byte boundaries) has twice the endurance
 // compared to writing 8 bit bytes.
 //
-#define EEPROM_SIZE 2048
+#define EEPROM_SIZE 1024
 
 // Writing unaligned 16 or 32 bit data is handled automatically when
 // this is defined, but at a cost of extra code size.  Without this,
@@ -48,7 +48,7 @@
 // absolutely sure all 16 and 32 bit writes will be aligned, you can
 // remove the extra unnecessary code.
 //
-#define HANDLE_UNALIGNED_WRITES
+//#define HANDLE_UNALIGNED_WRITES
 
 				// Minimum EEPROM Endurance
 				// ------------------------
