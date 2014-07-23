@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "HardwareSerial.h"
+#include "cli.h"
 
 struct Node {
 	uint16_t NetworkAddress;
@@ -42,6 +43,9 @@ public:
 	void getNodeIdentifier(char *nodeIdentifier);
 	bool setDestinationNodeIdentifier(char *destinationNodeIdentifer);
 	bool setBroadcast();
+
+	static void registerCommands(CLI &cc);
+	void send(const char *);
 
 private:
 	void clear();

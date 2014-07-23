@@ -1,15 +1,23 @@
 /*
  * XBeeUtil.cpp
  */
-
 #include <Arduino.h>
 #include "XBeeUtil.h"
+#include "Environment.h"
+#include "nvram.h"
 
 XBeeUtil XBee(Serial1);
 
 // <maximus> Initialize XBee if NodeID is set to zero generate one
 bool XBeeUtil::init(int nodeid)
 {
+	Env.reg("$name", [] (const char *var, char(*val)[ENVMAX]) {
+		snprintf(*val, sizeof(nvram.xbee_name), "%s", nvram.xbee_name);
+	}, [] (const char *var, const char *val) {
+		strncpy(nvram.xbee_name, val, sizeof(nvram.xbee_name));
+		store_nvram();
+	});
+
 	// First, can we talk
 	port.begin(9600);
 	if (!enterCommandMode()) {
@@ -31,10 +39,15 @@ bool XBeeUtil::init(int nodeid)
 		Serial.printf("Error changing baud rate: %s\r\n", bd);
 	}
 
+	// Now set runtime parameters
 	if (!talk("ATID aa995566\r", "Could not set PAN ID")) {
 		return false;
 	}
 
+	snprintf(buffer, XBEE_INPUTMAX, "ATNI%s\r", nvram.xbee_name);
+	if (!talk(buffer, "Could not set node ID")) {
+		return false;
+	}
 	return true;
 }
 
@@ -47,8 +60,8 @@ void XBeeUtil::status()
 	Serial.printf("Firmware version:     %s\r\n", getLine());
 	port.write("ATAI\r");
 	Serial.printf("Association status:   %s\r\n", getLine());
-	port.write("ATMY\r");
-	Serial.printf("Network address:      %s\r\n", getLine());
+	port.write("ATNI\r");
+	Serial.printf("Network ID:           %s\r\n", getLine());
 
 	uint32_t hi, lo;
 	port.write("ATSH\r");
@@ -64,6 +77,8 @@ void XBeeUtil::status()
 
 bool XBeeUtil::isAssociated()
 {
+	if (!enterCommandMode())
+		return false;
 	port.write("ATAI\r");
 	const char *r = getLine();
 	return (r != NULL && strtoul(r, NULL, 16) == 0);
@@ -74,8 +89,10 @@ void XBeeUtil::discover()
 	const char *r;
 	nodes.clear();
 
-	if (! isAssociated())
+	if (! isAssociated()) {
+		Serial.println("XBee is not associated!");
 		return;
+	}
 
 	port.write("ATNT\r");
 	uint32_t timeout_millis = strtoul(getLine(), NULL, 16) * 100;
@@ -146,145 +163,27 @@ void XBeeUtil::clear()
         port.read();
 }
 
-bool XBeeUtil::setNodeIdentifier(char *nodeIdentifier)
-{
-    uint8_t nodeLineIndex = 0;
-    char input[XBEE_INPUTMAX];
-    char my[XBEE_INPUTMAX];
-    byte pos = 0;
-    bool conflict = false;
-//    Serial.printf("attempting to set node identifier to %s\r\n", nodeIdentifier);
-
-//    std::vector<uint32_t> others;
-
-    if (enterCommandMode())
-    {
-        // <minty> first we gotta check for conflicts...
-        // <minty> get MY 16-bit network address
-        port.write("ATMY");
-        port.write("\r");
-        const char *got = getLine();
-        if (got != NULL)
-        	strncpy(my, got, XBEE_INPUTMAX);
-
-	    Serial.printf("got MY: %s [%d]\r\n", my, pos);
-
-        port.write("ATND");
-        port.write(nodeIdentifier);
-        port.write("\r");
-        delay(200);
-
-        // <minty> loop over all the results...
-        // each node separated by two carriage returns
-        // we're looking for the 4th line...
-        pos = 0;
-        elapsedMillis timer = 0;
-        while ((timer < 1500) && !conflict)
-	        while (port.available()) {
-		        input[pos] = port.read();
-//		        Serial.print(input[pos], HEX);
-		        if (input[pos] == '\r' || pos == XBEE_INPUTMAX-1) {
-			        input[pos] = 0;
-//			        Serial.printf("[%d,%d] %s\r\n", nodeLineIndex, pos, input);
-
-			        if ((pos == 0) && (nodeLineIndex == 10)) {
-//			            Serial.println("END OF NODE");
-				        nodeLineIndex = 0;
-				        pos = 0;
-				        timer = 0;
-			        }
-			        // <minty> probably don't need to go to the trouble of confirming the identifier
-			        // matches what we asked for, but what the hell
-			        else
-			        {
-			            if (nodeLineIndex == 0)
-			            {
-			                // <minty> stupid fucking ATMY drops leading zeros while ATND does not
-			                char *address = input;
-			                if (input[0] == '0')
-			                    address++;
-			                if (strcmp(my, address))
-                            {
-                                conflict = true;
-//                                Serial.println("conflict!!!!!");
-                            }
-			            }
-
-			            nodeLineIndex++;
-			            pos = 0;
-			        }
-		        } else {
-			        pos++;
-		        }
-			    delay(10);
-	        }
-
-	    if (conflict)
-        {
-//			Serial.println("found conflicting node!");
-            exitCommandMode();
-            return false;
-        }
-//	    else
-//			Serial.printf("setting node identifier to %s\r\n", nodeIdentifier);
-
-        // <minty> no conflicts, set our node identifier
-        port.write("ATNI");
-        port.write(nodeIdentifier);
-        port.write("\r");
-        if (!waitForOK())
-        {
-            exitCommandMode();
-            return false;
-        }
-        return exitCommandMode();
-    }
-
-    return false;
-}
-
-void XBeeUtil::getNodeIdentifier(char *nodeIdentifier)
-{
-    if (enterCommandMode())
-    {
-        port.write("ATNI\r");
-        const char *got = getLine();
-        if (got != NULL) {
-        	strncpy(nodeIdentifier, got, XBEE_INPUTMAX);
-        }
-	    exitCommandMode();
-	}
-}
-
 bool XBeeUtil::setDestinationNodeIdentifier(char *destinationNodeIdentifer)
 {
-    if (enterCommandMode())
-    {
-        port.write("ATDN");
-        port.write(destinationNodeIdentifer);
-        port.write("\r");
-        return waitForOK();
-    }
-    return false;
+	if (!enterCommandMode())
+		return false;
+
+	snprintf(buffer, XBEE_INPUTMAX, "ATDN%s\r", destinationNodeIdentifer);
+	if (!talk(buffer, "Failed to set baud rate"))
+		return false;
+
+    return true;
 }
 
 bool XBeeUtil::setBroadcast()
 {
-    bool rv = false;
-
-    if (enterCommandMode())
-    {
-        port.write("ATDH0\r");
-        if (waitForOK())
-        {
-            port.write("ATDLFFFF\r");
-            if (waitForOK())
-                rv = true;
-        }
-        exitCommandMode();
-    }
-
-    return rv;
+	if (!enterCommandMode())
+		return false;
+	if (!talk("ATDH0", "Failed to set DH"))
+		return false;
+	if (!talk("ATDLFFFF", "Failed to set DL"))
+		return false;
+    return true;
 }
 
 bool XBeeUtil::enterCommandMode()
@@ -329,4 +228,17 @@ const char *XBeeUtil::getLine(uint32_t wait)
 		}
 	}
 	return NULL;
+}
+
+void XBeeUtil::registerCommands(CLI &cc)
+{
+	cc.reg("ping", "ping -- Show all connected network nodes.", [] (std::vector<const char *> &v) {
+		XBee.discover();
+	});
+}
+
+void XBeeUtil::send(const char *s)
+{
+	exitCommandMode();
+	port.write(s);
 }
