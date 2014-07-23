@@ -6,21 +6,20 @@
 
 #include "cli.h"
 #include "Environment.h"
-#include "Programs.h"
-
-const static int numcmds = 4;
-const static char *commands[] = {"program", "set", "echo", "help"};
 
 void CLI::do_cli() {
 	if (dev.available()) {
 		input[pos] = dev.read();
-		if (echo)
-			dev.write(input[pos]);
 		if (input[pos] == '\r') {
 			input[pos] = 0;
+			if (echo)
+				Serial.println();
 			exec();
 			pos = 0;
+			prompt();
 		}else{
+			if (echo)
+				dev.write(input[pos]);
 			pos++;
 		}
 	}
@@ -35,8 +34,12 @@ CLI::token CLI::tok(const char *txt)
 			t.t = IDENT;
 			goto ident_done;
 		}
-		for (int i=0; i<numcmds; i++) {
-			if (strcmp(t.d, commands[i]) == 0) {
+		if (strcmp(t.d, "help") == 0 || strcmp(t.d, "echo") == 0 || strcmp(t.d, "set") == 0) {
+			t.t = COMMAND;
+			goto ident_done;
+		}
+		for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+			if (strcmp(t.d, (*it).name) == 0) {
 				t.t = COMMAND;
 				goto ident_done;
 			}
@@ -51,14 +54,24 @@ CLI::token CLI::tok(const char *txt)
 }
 
 void CLI::help() {
+	dev.println("");
 	dev.println("Simple command syntax:");
 	dev.println("  <command> [<args>]");
 	dev.println("");
 	dev.println("Commands:");
-	dev.println("  program <progname> ...  -- Set the program stack");
 	dev.println("  set $var <value>        -- Assign the program variable");
 	dev.println("  echo $var               -- Display the program variable");
+	for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+		dev.printf("  %s\r\n", (*it).help);
+	}
+	dev.println("  help                    -- Display this message");
 	dev.println("");
+}
+
+void CLI::prompt() {
+	if (echo) {
+		Serial.print("cmd> ");
+	}
 }
 
 void CLI::exec() {
@@ -71,27 +84,64 @@ void CLI::exec() {
 	}while ((t = strtok(NULL, DELIMETERS)) != NULL);
 
 	if (tokens[0].t != COMMAND) {
-		help();
+		if (strcmp("", tokens[0].d) != 0) {
+			Serial.println("Invalid command.");
+		}
 		return;
 	}
-	if (strcmp("program", tokens[0].d) == 0) {
-		Progs.clear();
-		for (unsigned int i=1; i<tokens.size(); i++) {
-			Progs.pushProgram(tokens[i].d);
-		}
-	}else if (strcmp("set", tokens[0].d) == 0 && tokens[1].t == IDENT) {
+	if (strcmp("set", tokens[0].d) == 0 && tokens[1].t == IDENT) {
 		for (unsigned int i=2; i<tokens.size(); i++) {
 			Env.set(tokens[1].d, tokens[i].d);
 		}
 	}else if (strcmp("echo", tokens[0].d) == 0 && tokens[1].t == IDENT) {
 		Serial.printf("%s\r\n", Env.get(tokens[1].d));
-	}else{
+	}else if (strcmp("help", tokens[0].d) == 0) {
 		help();
+	}else{
+		// Search command list
+		for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+			if (strcmp((*it).name, tokens[0].d) == 0) {
+				// Found
+				std::vector<const char *> v;
+				for (unsigned int i=0; i<tokens.size(); i++) {
+					v.push_back(tokens[i].d);
+				}
+				(*it).cmd(v);
+				goto done;
+			}
+		}
+		Serial.println("Invalid command.");
 	}
+
+	done:
+
+	return;
 	/*
 	Serial.println("got:");
 	for (std::vector<token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
 		Serial.printf("d: %s t: %d\r\n", (*it).d, (*it).t);
 	}
 	*/
+}
+
+void CLI::reg(const char *cmd, const char *help, command cb)
+{
+	rgr n;
+	unsigned int l = strnlen(cmd, CLI_LINE_MAX-1);
+	n.name = new char[l+1];
+	strncpy(n.name, cmd, l+1);
+
+	l = strnlen(help, CLI_LINE_MAX-1);
+	n.help = new char[l+1];
+	strncpy(n.help, help, l+1);
+
+	n.cmd = cb;
+
+	commands.push_back(n);
+}
+
+void CLI::exec(const char *command)
+{
+	strncpy(input, command, CLI_LINE_MAX);
+	exec();
 }

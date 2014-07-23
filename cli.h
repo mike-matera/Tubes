@@ -4,7 +4,11 @@
 #define CLI_LINE_MAX  128
 #define DELIMETERS    " \r\n"
 
+#include <vector>
+
 #include "Stream.h"
+
+typedef void (*command) (std::vector<const char *> &);
 
 class CLI {
 
@@ -19,6 +23,9 @@ public:
 	void do_cli();
 	void setEcho(bool e) {echo = e;}
 	void help();
+	void prompt();
+	void reg(const char *cmd, const char *help, command cb);
+	void exec(const char *command);
 
 private:
 
@@ -42,6 +49,14 @@ private:
 	void exec();
 
 private:
+
+	typedef struct {
+		char *name;
+		char *help;
+		command cmd;
+	} rgr;
+
+	std::vector<rgr> commands;
 
 	Stream &dev;
 	char input[CLI_LINE_MAX];
