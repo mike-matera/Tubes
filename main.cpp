@@ -1,3 +1,6 @@
+#include <vector>
+#include <sstream>
+
 #include "WProgram.h"
 #include "leds.h"
 #include "Programs/Sparkle.h"
@@ -8,10 +11,10 @@
 #include "Programs/Red.h"
 #include "usb_serial.h"
 #include "Lib/XBeeUtil.h"
-#include <vector>
 #include "cli.h"
 #include "Environment.h"
 #include "Programs.h"
+#include "nvram.h"
 
 // <minty> *IMPORTANT* this is used by programs to tell specific light elements to change
 // these need to be in order and they need to be unique... if not unique, the last one with
@@ -56,7 +59,17 @@ void xbee_early_init()
 	assoc:
 	Serial.println("Scanning network");
 	XBee.discover();
+	XBee.setBroadcast();
 }
+
+void nvram_early_init() {
+	init_nvram();
+	Serial.println("NVRAM Loaded");
+	Serial.printf("  XBee Name  : %s\r\n", nvram.xbee_name);
+}
+
+static CLI cc(Serial);
+static CLI cx(Serial1);
 
 extern "C" int main(void)
 {
@@ -88,17 +101,40 @@ extern "C" int main(void)
     for (int i=0; i<nLEDs; i++)
         led_set(i, CHSV(96, 255, 50));
 
+    delay(1999);
+    nvram_early_init();
     xbee_early_init();
 
-    Progs.registerProgram("melt", new Melt());
+	Progs.registerProgram("melt", new Melt());
     Progs.registerProgram("sparkle", new Sparkle());
     Progs.registerProgram("red", new Red());
     Progs.registerProgram("fadein", new FadeIn());
     Progs.registerProgram("fadeout", new FadeOut());
     Progs.registerProgram("test", new TestProgram());
 
-	CLI cc(Serial);
+    Progs.registerCommands(cc);
+    XBee.registerCommands(cc);
+    Progs.registerCommands(cx);
+    XBee.registerCommands(cx);
+
+    cc.reg("xbee", "xbee -- Connect XBee", [] (std::vector<const char *> &args) {
+    	xbee_connect = true;
+    });
+
+    cc.reg("xsend", "xsend -- Send command over XBee", [] (std::vector<const char *> &args) {
+    	char cmd[CLI_LINE_MAX];
+    	unsigned int cnt = 0;
+    	for (unsigned int i=1; i<args.size(); i++) {
+        	cnt += snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "%s ", args[i]);
+    	}
+    	snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "\r\n");
+    	XBee.send(cmd);
+    	cx.exec(cmd);
+    });
+
+    cx.setEcho(false);
 	cc.help();
+	cc.prompt();
 
 	uint32_t linkbaud = Serial.baud();
 	while (1) {
@@ -115,11 +151,12 @@ extern "C" int main(void)
 			if (Serial1.available()) {
 				Serial.write(Serial1.read());
 			}
-			continue;
+		}else{
+			cc.do_cli();
 		}
 
-		// Make sure the menu gets love
-		cc.do_cli();
+		cx.do_cli();
+
 		Progs.render(DrawMem);
 
 		// Render the HSV buffer onto our RGB pixels
