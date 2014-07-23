@@ -26,7 +26,7 @@ make.defs:
 
 $(TARGET).elf: LINKALL = $(shell find . -name '*.o')
 $(TARGET).elf: $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
-	$(CC) $(LDFLAGS) -o $@ $(LINKALL) $(LIBS) 
+	$(CXX) $(LDFLAGS) -o $@ $(LINKALL) $(LIBS) 
 
 %.hex: %.elf
 	$(SIZE) $<
