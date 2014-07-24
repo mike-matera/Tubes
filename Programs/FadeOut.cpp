@@ -37,9 +37,6 @@ int FadeOut::render(rgb_buffer leds) {
 			brightness--;
 	}
 
-	if (systick_millis_count - lastrun > 20)
-		brightness--;
-
 	for (unsigned int i=0; i<nLEDs; i++) {
 		leds[i].nscale8(brightness);
 	}
