@@ -19,7 +19,16 @@
 #define XBEE_RESET_PIN       19
 #define LED_PIN              13
 
+<<<<<<< HEAD
 #define NO_XBEE_INIT
+
+// Two command line interpreters. One for the USB serial port
+// and one for XBee. They are able to operate independently.
+static CLI cc(Serial);
+static CLI cx(Serial1);
+=======
+static CHSV DrawMem[nLEDs];
+>>>>>>> 4e484f511846e9cd9755d91a9028a0e3d8c05f8f
 
 // Two command line interpreters. One for the USB serial port
 // and one for XBee. They are able to operate independently.
