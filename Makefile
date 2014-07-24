@@ -1,7 +1,7 @@
 PLATFORM = Teensy3.1
 BOARD = Candle.B
 
-SUBDIRS = TeensyCore Loader FastLED OctoWS2811 LibMike Lib Programs Protocol
+SUBDIRS = TeensyCore Loader FastLED OctoWS2811 Lib Programs Protocol
 
 TARGET = main
 
@@ -12,7 +12,7 @@ CPP_FILES += $(wildcard *.cpp)
 OBJS := $(C_FILES:.c=.o) $(CPP_FILES:.cpp=.o)
 
 all: BUILDTYPE = all 
-all: $(SUBDIRS) $(REPODIRS) $(TARGET).hex
+all: $(TARGET).hex
 
 $(SUBDIRS): 
 	$(MAKE) -C $@ -f ../module.mk $(BUILDTYPE) 
@@ -25,7 +25,7 @@ make.defs:
 -include make.defs 
 
 $(TARGET).elf: LINKALL = $(shell find . -name '*.o')
-$(TARGET).elf: $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
+$(TARGET).elf: $(SUBDIRS) $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
 	$(CXX) $(LDFLAGS) -o $@ $(LINKALL) $(LIBS) 
 
 %.hex: %.elf
