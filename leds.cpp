@@ -9,3 +9,5 @@ int __drawmem[nLEDs*6];
 OctoWS2811 __octo_led_strip(nLEDs, __drawmem, NULL,  WS2811_GRB | WS2811_800kHz);
 #endif
 
+CHSV HSVPixels[nLEDs];
+CRGB RGBPixels[nLEDs];

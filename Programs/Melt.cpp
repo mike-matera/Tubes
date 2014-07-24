@@ -26,7 +26,7 @@ void Melt::setup() {
 void Melt::teardown() {
 }
 
-int Melt::render(raster leds) {
+int Melt::render(hsv_buffer leds) {
 	float value, hue;
 
 	step += 0.0005;

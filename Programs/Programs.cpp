@@ -6,14 +6,13 @@
  */
 
 #include "Programs.h"
+#include "leds.h"
 
 Programs::Programs() {
-	// TODO Auto-generated constructor stub
-
+	space = HSV;
 }
 
 Programs::~Programs() {
-	// TODO Auto-generated destructor stub
 }
 
 void Programs::registerProgram(const char *name, Renderable *r)
@@ -35,9 +34,17 @@ void Programs::registerCommands(CLI &cc)
 			Progs.pushProgram(ps[i]);
 		}
 	});
-
 	cc.reg("pop", "pop -- Pop the last program off of the stack.", [] (std::vector<const char *> &ps) {
 		Progs.popProgram();
+	});
+	cc.reg("colorspace", "colorspace [hsv|rgb] -- Change the program colorspace.", [] (std::vector<const char *> &ps) {
+		if (ps.size() < 2)
+			return;
+		if (strcmp("hsv", ps[1]) == 0) {
+			Progs.setColorspace(HSV);
+		} else if (strcmp("rgb", ps[1]) == 0) {
+			Progs.setColorspace(RGB);
+		}
 	});
 }
 
@@ -69,12 +76,28 @@ void Programs::clear() {
 	programs.clear();
 }
 
-void Programs::render(raster ras) {
+void Programs::render() {
 	for (std::vector<res>::iterator it = programs.begin(); it != programs.end(); it++) {
 		res &r = *it;
-		if (r.t <= systick_millis_count)
-			r.t = r.r->render(ras) + systick_millis_count;
+		if (r.t <= systick_millis_count) {
+			if (space == HSV)
+				r.t = r.r->render(HSVPixels) + systick_millis_count;
+			else
+				r.t = r.r->render(RGBPixels) + systick_millis_count;
+		}
+
 	}
+	// Render the HSV buffer onto our RGB pixels
+	if (space == HSV) {
+		for (int i=0; i<nLEDs; i++) {
+			led_set(i, HSVPixels[i]);
+		}
+	}else{
+		for (int i=0; i<nLEDs; i++) {
+			led_set(i, RGBPixels[i]);
+		}
+	}
+	led_show();
 }
 
 Programs Progs;

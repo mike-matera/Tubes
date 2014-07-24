@@ -31,7 +31,7 @@ void Sparkle::teardown() {
 #define LIMIT      128
 #define ENVELOPE   64
 
-int Sparkle::render(raster leds) {
+int Sparkle::render(hsv_buffer leds) {
 	ca->Advance(26);
 	for (byte j=0; j<nLEDs; j++) {
 

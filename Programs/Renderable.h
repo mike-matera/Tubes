@@ -35,10 +35,6 @@
  *    The render() function returns an integer which is interpreted by the system as the number of
  *    microseconds you want to wait before being called again. If you want to be called right away
  *    return zero. The system can only guarantee that it will be *at least* that many microseconds.
- *
- *    You must implement render()
- *
- *  TODO: Interface for sending/receiving control messages.
  */
 
 #ifndef RENDERABLE_H_
@@ -53,7 +49,8 @@ public:
 
 public:
 	virtual void setup();
-	virtual int render(raster) = 0;
+	virtual int render(hsv_buffer) = 0;
+	virtual int render(rgb_buffer) = 0;
 	virtual void teardown();
 };
 

@@ -14,14 +14,12 @@ public:
 
 public:
 	virtual void setup();
-	virtual int render(raster);
+	virtual int render(hsv_buffer);
+	virtual int render(rgb_buffer);
 
 private:
-	uint8_t inverseBrightness;
-	uint8_t increment = 3;
-	uint8_t adjustedIncrement;
-	elapsedMillis timer;
-	uint8_t idealElapsedTime = 20;
+	uint8_t brightness;
+	uint32_t lastrun;
 };
 
 #endif /* FADEIN_H_ */

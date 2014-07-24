@@ -20,7 +20,8 @@ public:
 
 public:
 	virtual void setup();
-	virtual int render(raster leds);
+	virtual int render(hsv_buffer leds);
+	virtual int render(rgb_buffer) {return 1000;};
 	virtual void teardown();
 
 private:

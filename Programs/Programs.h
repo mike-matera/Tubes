@@ -13,20 +13,60 @@
 #include "Renderable.h"
 #include "cli.h"
 
+/*
+ * Programs: A class to manage the running programs. *
+ */
 class Programs {
+
 public:
+
+	enum Colorspace {HSV, RGB};
+
 	Programs();
-	virtual ~Programs();
+	~Programs();
 
 public:
-	void registerProgram(const char *name, Renderable *r);
-	void pushProgram(const char *p);
-	void popProgram();
-	void clear();
-	void render(raster r);
 
-	// Must be static because of lambda funcitons.
+	/*
+	 * Associate a name to an instance of a runnable program. This name
+	 * is used by the pushProgram() function to identify which program
+	 * the user wishes to activate.
+	 */
+	void registerProgram(const char *name, Renderable *r);
+
+	/*
+	 * Activate the named program. It must be previously registered.
+	 */
+	void pushProgram(const char *p);
+
+	/*
+	 * Pop the top program off of the stack.
+	 */
+	void popProgram();
+
+	/*
+	 * Clear the program stack.
+	 */
+	void clear();
+
+	/*
+	 * Call this in the main event loop to render the running programs.
+	 */
+	void render();
+
+	/*
+	 * Register CLI commands. Static to avoid conflicts with creating pointers
+	 * to lambda functions.
+	 */
 	static void registerCommands(CLI &cc);
+
+	void setColorspace(Colorspace c) {
+		space = c;
+	}
+
+	Colorspace getColorspace() {
+		return space;
+	}
 
 private:
 	typedef struct {
@@ -39,9 +79,9 @@ private:
 		Renderable *r;
 	} prog;
 
+	Colorspace space;
 	std::vector<res> programs;
 	std::vector<prog> palette;
-
 };
 
 extern Programs Progs;
