@@ -16,21 +16,15 @@
 #include "Programs.h"
 #include "nvram.h"
 
-// <minty> *IMPORTANT* this is used by programs to tell specific light elements to change
-// these need to be in order and they need to be unique... if not unique, the last one with
-// the conflicting value to turn on will turn red
-#define XBEE_NODE_IDENTIFIER 0
 #define XBEE_RESET_PIN       19
-
-// <minty> xbee_serial1_control = true reads commands from the xbee instead
-// of serial. If you're just plugging into USB, set this to false
-// static bool xbee_serial1_control = false;
-
-// <minty> xbee_connect controls whether or not commands sent over
-// serial should be handled by the teensy or passed through to the xbee
-static bool xbee_connect = false;
+#define LED_PIN              13
 
 static CHSV DrawMem[nLEDs];
+
+// Two command line interpreters. One for the USB serial port
+// and one for XBee. They are able to operate independently.
+static CLI cc(Serial);
+static CLI cx(Serial1);
 
 void xbee_early_init()
 {
@@ -68,25 +62,19 @@ void nvram_early_init() {
 	Serial.printf("  XBee Name  : %s\r\n", nvram.xbee_name);
 }
 
-static CLI cc(Serial);
-static CLI cx(Serial1);
-
 extern "C" int main(void)
 {
-    // <minty> DO NOT LOWER THIS
-    // if you want xbee node identifier conflict detection to work.
-    // The xbee's need a bit of time to load up and recognize the rest
-    // of the network... when connected to usb, you don't need the delay
-    // cause things are slowed down a bit or something. grumble grumble
-	//    delay(5000);
+	static bool xbee_connect = false;
 
-	// Setup code...
-	pinMode(13, OUTPUT);
+	pinMode(LED_PIN, OUTPUT);
+
 	led_init();
 	for (uint8_t i=0; i<nLEDs; i++) {
 		led_set(i, 0);
 	}
 	led_show();
+
+	// Get a random seed
 	analogReference(DEFAULT);
 	randomSeed(analogRead(8));
 
@@ -95,16 +83,24 @@ extern "C" int main(void)
 	// The host sets the baud and we can only read it. It seems that
 	// begin() is this way for compatibility with Arduino.
     Serial.begin(115200);
-	// XXX: FIXME: Handle BAUD: Serial1.begin(9600);
 
 	// <minty> status check
     for (int i=0; i<nLEDs; i++)
         led_set(i, CHSV(96, 255, 50));
 
-    delay(1999);
+    // <maximus> Uncomment this if you want to be able to see the
+    // nvram printout. My terminal emulator doesn't reconnect fast
+    // enough to see it at boot unless there's some delay.
+    /// delay(1999);
+
+    // Load the NVRAM into our struct
     nvram_early_init();
+
+    // Reset and configure XBee
     xbee_early_init();
 
+    // Register the programs that we can run. The names will be the
+    // ones used by the CLI
 	Progs.registerProgram("melt", new Melt());
     Progs.registerProgram("sparkle", new Sparkle());
     Progs.registerProgram("red", new Red());
@@ -112,11 +108,16 @@ extern "C" int main(void)
     Progs.registerProgram("fadeout", new FadeOut());
     Progs.registerProgram("test", new TestProgram());
 
+    // Register the program control commands on both CLIs
     Progs.registerCommands(cc);
-    XBee.registerCommands(cc);
     Progs.registerCommands(cx);
-    XBee.registerCommands(cx);
 
+    // Register XBee commands on the USB serial CLI only
+    XBee.registerCommands(cc);
+
+    // Command registration. This uses a lambda function (yay). The lambda
+    // functions must not capture variables (i.e. they must have the [] capture
+    // specification. Otherwise you can't make function pointers out of them
     cc.reg("xbee", "xbee -- Connect XBee", [] (std::vector<const char *> &args) {
     	xbee_connect = true;
     });
@@ -132,8 +133,9 @@ extern "C" int main(void)
     	cx.exec(cmd);
     });
 
+    // Do not echo a prompt or help to the xbee command line
     cx.setEcho(false);
-	cc.help();
+    cc.help();
 	cc.prompt();
 
 	uint32_t linkbaud = Serial.baud();
@@ -151,10 +153,10 @@ extern "C" int main(void)
 			if (Serial1.available()) {
 				Serial.write(Serial1.read());
 			}
-		}else{
-			cc.do_cli();
+			continue;
 		}
 
+		cc.do_cli();
 		cx.do_cli();
 
 		Progs.render(DrawMem);

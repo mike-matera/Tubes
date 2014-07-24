@@ -74,6 +74,9 @@ void CLI::prompt() {
 	}
 }
 
+/*
+ * Not as good as an ANTLR parser, but much smaller.
+ */
 void CLI::exec() {
 	ss = SCANNING;
 	std::vector<token> tokens;
@@ -116,12 +119,6 @@ void CLI::exec() {
 	done:
 
 	return;
-	/*
-	Serial.println("got:");
-	for (std::vector<token>::iterator it = tokens.begin(); it != tokens.end(); it++) {
-		Serial.printf("d: %s t: %d\r\n", (*it).d, (*it).t);
-	}
-	*/
 }
 
 void CLI::reg(const char *cmd, const char *help, command cb)

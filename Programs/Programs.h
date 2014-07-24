@@ -13,19 +13,46 @@
 #include "Renderable.h"
 #include "cli.h"
 
+/*
+ * Programs: A class to manage the running programs. *
+ */
 class Programs {
 public:
 	Programs();
-	virtual ~Programs();
+	~Programs();
 
 public:
+	/*
+	 * Associate a name to an instance of a runnable program. This name
+	 * is used by the pushProgram() function to identify which program
+	 * the user wishes to activate.
+	 */
 	void registerProgram(const char *name, Renderable *r);
+
+	/*
+	 * Activate the named program. It must be previously registered.
+	 */
 	void pushProgram(const char *p);
+
+	/*
+	 * Pop the top program off of the stack.
+	 */
 	void popProgram();
+
+	/*
+	 * Clear the program stack.
+	 */
 	void clear();
+
+	/*
+	 * Call this in the main event loop to render the running programs.
+	 */
 	void render(raster r);
 
-	// Must be static because of lambda funcitons.
+	/*
+	 * Register CLI commands. Static to avoid conflicts with creating pointers
+	 * to lambda functions.
+	 */
 	static void registerCommands(CLI &cc);
 
 private:
