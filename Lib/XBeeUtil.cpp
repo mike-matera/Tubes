@@ -9,7 +9,7 @@
 XBeeUtil XBee(Serial1);
 
 // <maximus> Initialize XBee if NodeID is set to zero generate one
-bool XBeeUtil::init(int nodeid)
+bool XBeeUtil::init()
 {
 	Env.reg("$name", [] (const char *var, char(*val)[ENVMAX]) {
 		snprintf(*val, sizeof(nvram.xbee_name), "%s", nvram.xbee_name);
@@ -155,14 +155,6 @@ bool XBeeUtil::talk(const char *command, const char *message, uint32_t time)
 	return true;
 }
 
-// <minty> write some carriage returns to the xbee and clear what's on it's input
-void XBeeUtil::clear()
-{
-    port.write("\r\r\r");
-    while (port.available())
-        port.read();
-}
-
 bool XBeeUtil::setDestinationNodeIdentifier(char *destinationNodeIdentifer)
 {
 	if (!enterCommandMode())
@@ -188,6 +180,8 @@ bool XBeeUtil::setBroadcast()
 
 bool XBeeUtil::enterCommandMode()
 {
+	// Track when we are in command mode. You can (and should) call
+	// this function any time you want to run a command.
 	if (last_access == 0 || (systick_millis_count - last_access) >= XBEE_COMMAND_TIMEOUT_MILLIS) {
 		delay(XBEE_GUARD_TIME_MILLIS);
 		port.write("+++");
@@ -209,7 +203,6 @@ bool XBeeUtil::exitCommandMode()
 bool XBeeUtil::waitForOK(uint32_t wait)
 {
 	const char *got = getLine(wait);
-	//Serial.printf("DEBUG: waitForOK(): \"%s\"\r\n", got);
 	return (got != NULL && strncmp(got, "OK", XBEE_INPUTMAX) == 0);
 }
 

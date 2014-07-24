@@ -17,6 +17,9 @@
 #include "HardwareSerial.h"
 #include "cli.h"
 
+/*
+ * A struct that contains the information returned by the ATND command
+ */
 struct Node {
 	uint16_t NetworkAddress;
 	uint32_t SerialHi;
@@ -34,21 +37,46 @@ class XBeeUtil {
 
 public:
 	XBeeUtil(HardwareSerial &p) : port(p) {/* can't talk to serial yet */}
-	bool init(int node_id=0);
+
+	/*
+	 * Intialize the XBee: Assumes the reset BAUD is 9600 will fail otherwise
+	 */
+	bool init();
+
+	/*
+	 * Retrieve and print the radio status.
+	 */
 	void status();
+
+	/*
+	 * Retrieve and print the network status
+	 */
 	void discover();
+
+	/*
+	 * Returns true if this node is connected to a network. Some functions will
+	 * not operate unless it is (like discover())
+	 */
 	bool isAssociated();
 
-	bool setNodeIdentifier(char *nodeIdentifier);
-	void getNodeIdentifier(char *nodeIdentifier);
+	/*
+	 * Set who we want to talk to.
+	 */
 	bool setDestinationNodeIdentifier(char *destinationNodeIdentifer);
 	bool setBroadcast();
 
-	static void registerCommands(CLI &cc);
+	/*
+	 * Send the raw string to the XBee.
+	 */
 	void send(const char *);
 
+	/*
+	 * Initialization: Add XBee commands to the CLI
+	 */
+	static void registerCommands(CLI &cc);
+
 private:
-	void clear();
+
 	bool talk(const char *command, const char *message = NULL, uint32_t wait = XBEE_GUARD_TIME_MILLIS);
 	bool enterCommandMode();
 	bool exitCommandMode();
@@ -56,6 +84,7 @@ private:
 	const char *getLine(uint32_t wait = XBEE_GUARD_TIME_MILLIS);
 
 private:
+
 	HardwareSerial &port;
 	uint32_t last_access = 0;
 	char buffer[XBEE_INPUTMAX];
