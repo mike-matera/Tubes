@@ -11,7 +11,7 @@ SequenceTest::SequenceTest() {
 SequenceTest::~SequenceTest() {
 }
 
-int SequenceTest::render(raster leds) {
+int render(hsv_buffer leds) {
     for (byte i = 0; i < nLEDs; i++) {
         leds[i].h = 0;
         leds[i].s = 255;
@@ -19,3 +19,8 @@ int SequenceTest::render(raster leds) {
     }
     return 0;
 }
+
+int render(rgb_buffer) {
+    return 10000;
+}
+

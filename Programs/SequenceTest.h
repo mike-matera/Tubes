@@ -13,7 +13,8 @@ public:
 	virtual ~SequenceTest();
 
 public:
-	virtual int render(raster);
+	virtual int render(hsv_buffer);
+	virtual int render(rgb_buffer);
 
 private:
 };

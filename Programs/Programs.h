@@ -26,10 +26,6 @@ public:
 	~Programs();
 
 public:
-<<<<<<< HEAD
-
-=======
->>>>>>> 4e484f511846e9cd9755d91a9028a0e3d8c05f8f
 	/*
 	 * Associate a name to an instance of a runnable program. This name
 	 * is used by the pushProgram() function to identify which program
@@ -51,7 +47,6 @@ public:
 	 * Clear the program stack.
 	 */
 	void clear();
-<<<<<<< HEAD
 
 	/*
 	 * Call this in the main event loop to render the running programs.
@@ -59,15 +54,6 @@ public:
 	void render();
 
 	/*
-=======
-
-	/*
-	 * Call this in the main event loop to render the running programs.
-	 */
-	void render(raster r);
-
-	/*
->>>>>>> 4e484f511846e9cd9755d91a9028a0e3d8c05f8f
 	 * Register CLI commands. Static to avoid conflicts with creating pointers
 	 * to lambda functions.
 	 */
