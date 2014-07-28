@@ -209,6 +209,7 @@ bool XBeeUtil::waitForOK(uint32_t wait)
 const char *XBeeUtil::getLine(uint32_t wait)
 {
 	uint32_t start = systick_millis_count;
+	last_access = systick_millis_count;
 	int pos = 0;
 	while (pos < XBEE_INPUTMAX && (systick_millis_count - start) < wait) {
 		if (port.available()) {

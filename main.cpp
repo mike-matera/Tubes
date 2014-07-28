@@ -23,7 +23,7 @@
 // XBee initialization takes time and if you're testing programs
 // it's annoying. Also good for unpatched Rev A boards
 //
-#define NO_XBEE_INIT
+//#define NO_XBEE_INIT
 
 // Two command line interpreters. One for the USB serial port
 // and one for XBee. They are able to operate independently.
@@ -97,7 +97,7 @@ extern "C" int main(void)
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    // delay(1999);
+    delay(1999);
 
     // Load the NVRAM into our struct
     nvram_early_init();
