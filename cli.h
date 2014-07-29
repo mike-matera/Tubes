@@ -9,18 +9,53 @@
 #include "Stream.h"
 
 #include "CommandListener.h"
-/*
- * Prototype for a command callback. The vector contains the tokens
- * on the line that was entered by the user including the name of your
- * command. That way one callback can handle multiple commands.
- *
- * arg[0]: Name of the command
- * arg[1]: First argument
- * ...
- */
-// typedef void (*command) (std::vector<const char *> &);
 
 class CLI {
+
+public:
+
+	class Registration {
+		friend class CLI;
+	public:
+		/*
+		 * Register a command callback.
+		 *
+		 * cmd: The command as it will appear on the command line
+		 * help: The help message that's printed when the user types 'help'
+		 * cb: The command listener
+		 */
+		void registerCommand(const char *cmd, const char *help, CommandListener *cb);
+
+		/*
+		 * Register a variable callback.
+		 *
+		 * var: The variable name (including the $)
+		 * cb: The command listener
+		 */
+		void registerVariable(const char *var, CommandListener *cb);
+
+		void reset() {
+			commands.clear();
+			vars.clear();
+		}
+
+	protected:
+
+		typedef struct {
+			char *name;
+			char *help;
+			CommandListener *cmd;
+		} rgr;
+
+		typedef struct {
+			char *var;
+			CommandListener *cmd;
+		} env;
+
+		std::vector<rgr> commands;
+		std::vector<env> vars;
+
+	};
 
 public:
 	CLI(Stream &s) : dev(s) {
@@ -52,30 +87,11 @@ public:
 	void prompt();
 
 	/*
-	 * Register a command callback.
-	 *
-	 * cmd: The command as it will appear on the command line
-	 * help: The help message that's printed when the user types 'help'
-	 * cb: The command listener
-	 */
-	void registerCommand(const char *cmd, const char *help, CommandListener *cb);
-
-	/*
-	 * Register a variable callback.
-	 *
-	 * var: The variable name (including the $)
-	 * cb: The command listener
-	 */
-	void registerVariable(const char *var, CommandListener *cb);
-
-	/*
 	 * Execute the string as if it were typed on the command line.
 	 */
 	void exec(const char *command);
 
 	void reset() {
-		commands.clear();
-		vars.clear();
 		pos = 0;
 		echo = true;
 		ss = SCANNING;
@@ -104,25 +120,14 @@ private:
 
 private:
 
-	typedef struct {
-		char *name;
-		char *help;
-		CommandListener *cmd;
-	} rgr;
-
-	typedef struct {
-		char *var;
-		CommandListener *cmd;
-	} env;
-
 	int pos;
 	sstate ss;
 	bool echo;
 	Stream &dev;
 	char input[CLI_LINE_MAX];
 	char buffer[ENVMAX];
-	std::vector<rgr> commands;
-	std::vector<env> vars;
 };
+
+extern CLI::Registration Commands;
 
 #endif

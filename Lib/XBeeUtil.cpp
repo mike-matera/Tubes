@@ -249,10 +249,10 @@ void XBeeUtil::send(const char *s)
 	port.write(s);
 }
 
-void XBeeUtil::registerCommands(CLI &cc)
+void XBeeUtil::registerCommands()
 {
-	cc.registerCommand("ping", "ping -- Show all connected network nodes.", this);
-	cc.registerVariable("$name", this);
+	Commands.registerCommand("ping", "ping -- Show all connected network nodes.", this);
+	Commands.registerVariable("$name", this);
 }
 
 // Command Listener

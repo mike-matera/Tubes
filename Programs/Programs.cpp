@@ -74,13 +74,13 @@ void Programs::render() {
 	led_show();
 }
 
-void Programs::registerCommands(CLI &cc)
+void Programs::registerCommands()
 {
-	cc.registerCommand("program", "program [<p1>...<pN>] -- Set the program stack.", this);
-	cc.registerCommand("push", "push [<p1> [...] -- Push the programs onto the stack.", this);
-	cc.registerCommand("pop", "pop -- Pop the last program off of the stack.", this);
-	cc.registerCommand("colorspace", "colorspace [hsv|rgb] -- Change the program colorspace.", this);
-	cc.registerVariable("$name", this);
+	Commands.registerCommand("program", "program [<p1>...<pN>] -- Set the program stack.", this);
+	Commands.registerCommand("push", "push [<p1> [...] -- Push the programs onto the stack.", this);
+	Commands.registerCommand("pop", "pop -- Pop the last program off of the stack.", this);
+	Commands.registerCommand("colorspace", "colorspace [hsv|rgb] -- Change the program colorspace.", this);
+	Commands.registerVariable("$name", this);
 }
 
 // Command Listener

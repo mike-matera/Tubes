@@ -6,6 +6,8 @@
 
 #include "cli.h"
 
+CLI::Registration Commands;
+
 void CLI::do_cli() {
 	if (dev.available()) {
 		input[pos] = dev.read();
@@ -37,7 +39,7 @@ CLI::token CLI::tok(const char *txt)
 			t.t = COMMAND;
 			goto ident_done;
 		}
-		for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+		for (std::vector<Registration::rgr>::iterator it = Commands.commands.begin(); it != Commands.commands.end(); it++) {
 			if (strcmp(t.d, (*it).name) == 0) {
 				t.t = COMMAND;
 				goto ident_done;
@@ -60,7 +62,7 @@ void CLI::help() {
 	dev.println("Commands:");
 	dev.println("  set $var <value>        -- Assign the program variable");
 	dev.println("  echo $var               -- Display the program variable");
-	for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+	for (std::vector<Registration::rgr>::iterator it = Commands.commands.begin(); it != Commands.commands.end(); it++) {
 		dev.printf("  %s\r\n", (*it).help);
 	}
 	dev.println("  help                    -- Display this message");
@@ -92,13 +94,13 @@ void CLI::exec() {
 		return;
 	}
 	if (strcmp("set", tokens[0].d) == 0 && tokens[1].t == IDENT) {
-		for (std::vector<env>::iterator it = vars.begin(); it != vars.end(); it++) {
+		for (std::vector<Registration::env>::iterator it = Commands.vars.begin(); it != Commands.vars.end(); it++) {
 			if (strcmp((*it).var, tokens[1].d) == 0) {
 				(*it).cmd->onAssign(tokens[1].d, tokens[2].d);
 			}
 		}
 	}else if (strcmp("echo", tokens[0].d) == 0 && tokens[1].t == IDENT) {
-		for (std::vector<env>::iterator it = vars.begin(); it != vars.end(); it++) {
+		for (std::vector<Registration::env>::iterator it = Commands.vars.begin(); it != Commands.vars.end(); it++) {
 			if (strcmp((*it).var, tokens[1].d) == 0) {
 				(*it).cmd->onReference(tokens[1].d, &buffer);
 				Serial.println(buffer);
@@ -109,7 +111,7 @@ void CLI::exec() {
 		help();
 	}else{
 		// Search command list
-		for (std::vector<rgr>::iterator it = commands.begin(); it != commands.end(); it++) {
+		for (std::vector<Registration::rgr>::iterator it = Commands.commands.begin(); it != Commands.commands.end(); it++) {
 			if (strcmp((*it).name, tokens[0].d) == 0) {
 				// Found
 				std::vector<const char *> v;
@@ -128,7 +130,7 @@ void CLI::exec() {
 	return;
 }
 
-void CLI::registerCommand(const char *cmd, const char *help, CommandListener *cb)
+void CLI::Registration::registerCommand(const char *cmd, const char *help, CommandListener *cb)
 {
 	rgr n;
 	unsigned int l = strnlen(cmd, CLI_LINE_MAX-1);
@@ -144,7 +146,7 @@ void CLI::registerCommand(const char *cmd, const char *help, CommandListener *cb
 	commands.push_back(n);
 }
 
-void CLI::registerVariable(const char *var, CommandListener *cb)
+void CLI::Registration::registerVariable(const char *var, CommandListener *cb)
 {
 	env n;
 	unsigned int l = strnlen(var, CLI_LINE_MAX-1);

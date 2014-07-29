@@ -22,7 +22,7 @@
 // XBee initialization takes time and if you're testing programs
 // it's annoying. Also good for unpatched Rev A boards
 //
-//#define NO_XBEE_INIT
+#define NO_XBEE_INIT
 
 // Two command line interpreters. One for the USB serial port
 // and one for XBee. They are able to operate independently.
@@ -102,7 +102,7 @@ extern "C" int main(void)
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    delay(5000);
+    //delay(5000);
 
     // Load the NVRAM into our struct
     nvram_early_init();
@@ -126,12 +126,11 @@ extern "C" int main(void)
     // Reset and configure XBee
     bool xbee_initialized = xbee_early_init();
 
-    // Register the program control commands on both CLIs
-    Progs.registerCommands(cc);
-    Progs.registerCommands(cx);
+    // Register the program control commands
+    Progs.registerCommands();
 
-    // Register XBee commands on the USB serial CLI only
-    XBee.registerCommands(cc);
+    // Register XBee commands
+    XBee.registerCommands();
 
     if (!xbee_initialized)
         Progs.pushProgram("red");
@@ -141,7 +140,7 @@ extern "C" int main(void)
     		xbee_connect = true;
     	}
     } xc_cmd;
-    cc.registerCommand("xbee", "xbee -- Connect XBee", &xc_cmd);
+    Commands.registerCommand("xbee", "xbee -- Connect XBee", &xc_cmd);
 
     class XbeeCommand : public CommandListener {
     	virtual void onCommand(const std::vector<const char *> &args) {
@@ -155,14 +154,14 @@ extern "C" int main(void)
         	cx.exec(cmd);
     	}
     } xc_snd;
-    cc.registerCommand("xsend", "xsend -- Send command over XBee", &xc_snd);
+    Commands.registerCommand("xsend", "xsend -- Send command over XBee", &xc_snd);
 
     class Reboot : public CommandListener {
     	virtual void onCommand(const std::vector<const char *> &args) {
     		reboot = true;
     	}
     } rb_cmd;
-    cc.registerCommand("reboot", "reboot -- Restart the program", &rb_cmd);
+    Commands.registerCommand("reboot", "reboot -- Restart the program", &rb_cmd);
 
     // Do not echo a prompt or help to the xbee command line
     cx.setEcho(false);
@@ -206,6 +205,7 @@ extern "C" int main(void)
 	cx.reset();
 
 	Progs.reset();
+	Commands.reset();
 
     delete prog_melt;
     delete prog_sparkle;

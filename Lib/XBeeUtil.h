@@ -74,7 +74,7 @@ public:
 	/*
 	 * Initialization: Add XBee commands to the CLI
 	 */
-	void registerCommands(CLI &cc);
+	void registerCommands();
 	virtual void onCommand(const std::vector<const char *> &c);
 	virtual void onAssign(const char *var, const char *val);
 	virtual void onReference(const char *var, char(*val)[ENVMAX]);

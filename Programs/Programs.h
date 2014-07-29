@@ -57,7 +57,7 @@ public:
 	 * Register CLI commands. Static to avoid conflicts with creating pointers
 	 * to lambda functions.
 	 */
-	void registerCommands(CLI &cc);
+	void registerCommands();
 
 	void setColorspace(Colorspace c) {
 		space = c;
