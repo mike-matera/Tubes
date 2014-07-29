@@ -21,6 +21,7 @@ public:
 
 private:
 	int led;
+	uint32_t color;
 };
 
 #endif /* TESTPROGRAM_H_ */

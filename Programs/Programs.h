@@ -16,7 +16,7 @@
 /*
  * Programs: A class to manage the running programs. *
  */
-class Programs {
+class Programs : public CommandListener {
 
 public:
 
@@ -57,7 +57,7 @@ public:
 	 * Register CLI commands. Static to avoid conflicts with creating pointers
 	 * to lambda functions.
 	 */
-	static void registerCommands(CLI &cc);
+	void registerCommands(CLI &cc);
 
 	void setColorspace(Colorspace c) {
 		space = c;
@@ -66,6 +66,16 @@ public:
 	Colorspace getColorspace() {
 		return space;
 	}
+
+	void reset() {
+		space = HSV;
+		clear();
+		palette.clear();
+	}
+
+	virtual void onCommand(const std::vector<const char *> &c);
+	virtual void onAssign(const char *var, const char *val);
+	virtual void onReference(const char *var, char(*val)[ENVMAX]);
 
 private:
 	typedef struct {

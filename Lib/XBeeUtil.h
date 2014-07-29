@@ -16,6 +16,7 @@
 
 #include "HardwareSerial.h"
 #include "cli.h"
+#include "CommandListener.h"
 
 /*
  * A struct that contains the information returned by the ATND command
@@ -33,7 +34,7 @@ struct Node {
 	uint32_t Extra;
 };
 
-class XBeeUtil {
+class XBeeUtil : public CommandListener {
 
 public:
 	XBeeUtil(HardwareSerial &p) : port(p) {/* can't talk to serial yet */}
@@ -73,7 +74,10 @@ public:
 	/*
 	 * Initialization: Add XBee commands to the CLI
 	 */
-	static void registerCommands(CLI &cc);
+	void registerCommands(CLI &cc);
+	virtual void onCommand(const std::vector<const char *> &c);
+	virtual void onAssign(const char *var, const char *val);
+	virtual void onReference(const char *var, char(*val)[ENVMAX]);
 
 private:
 

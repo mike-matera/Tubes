@@ -9,6 +9,7 @@
 
 TestProgram::TestProgram() {
 	led = 0;
+	color = 0;
 }
 
 TestProgram::~TestProgram() {

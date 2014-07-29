@@ -5,7 +5,6 @@
 #include "Arduino.h"
 
 #include "cli.h"
-#include "Environment.h"
 
 void CLI::do_cli() {
 	if (dev.available()) {
@@ -93,11 +92,19 @@ void CLI::exec() {
 		return;
 	}
 	if (strcmp("set", tokens[0].d) == 0 && tokens[1].t == IDENT) {
-		for (unsigned int i=2; i<tokens.size(); i++) {
-			Env.set(tokens[1].d, tokens[i].d);
+		for (std::vector<env>::iterator it = vars.begin(); it != vars.end(); it++) {
+			if (strcmp((*it).var, tokens[1].d) == 0) {
+				(*it).cmd->onAssign(tokens[1].d, tokens[2].d);
+			}
 		}
 	}else if (strcmp("echo", tokens[0].d) == 0 && tokens[1].t == IDENT) {
-		Serial.printf("%s\r\n", Env.get(tokens[1].d));
+		for (std::vector<env>::iterator it = vars.begin(); it != vars.end(); it++) {
+			if (strcmp((*it).var, tokens[1].d) == 0) {
+				(*it).cmd->onReference(tokens[1].d, &buffer);
+				Serial.println(buffer);
+				goto done;
+			}
+		}
 	}else if (strcmp("help", tokens[0].d) == 0) {
 		help();
 	}else{
@@ -109,7 +116,7 @@ void CLI::exec() {
 				for (unsigned int i=0; i<tokens.size(); i++) {
 					v.push_back(tokens[i].d);
 				}
-				(*it).cmd(v);
+				(*it).cmd->onCommand(v);
 				goto done;
 			}
 		}
@@ -121,7 +128,7 @@ void CLI::exec() {
 	return;
 }
 
-void CLI::reg(const char *cmd, const char *help, command cb)
+void CLI::registerCommand(const char *cmd, const char *help, CommandListener *cb)
 {
 	rgr n;
 	unsigned int l = strnlen(cmd, CLI_LINE_MAX-1);
@@ -135,6 +142,18 @@ void CLI::reg(const char *cmd, const char *help, command cb)
 	n.cmd = cb;
 
 	commands.push_back(n);
+}
+
+void CLI::registerVariable(const char *var, CommandListener *cb)
+{
+	env n;
+	unsigned int l = strnlen(var, CLI_LINE_MAX-1);
+	n.var = new char[l+1];
+	strncpy(n.var, var, l+1);
+
+	n.cmd = cb;
+
+	vars.push_back(n);
 }
 
 void CLI::exec(const char *command)

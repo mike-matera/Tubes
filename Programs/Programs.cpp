@@ -7,6 +7,7 @@
 
 #include "Programs.h"
 #include "leds.h"
+#include "nvram.h"
 
 Programs::Programs() {
 	space = HSV;
@@ -19,33 +20,6 @@ void Programs::registerProgram(const char *name, Renderable *r)
 {
 	palette.push_back({name, r});
 	Serial.printf("Registering program: \"%s\"\r\n", name);
-}
-
-void Programs::registerCommands(CLI &cc)
-{
-	cc.reg("program", "program [<p1>...<pN>] -- Set the program stack.", [] (std::vector<const char *> &ps) {
-		Progs.clear();
-		for (unsigned int i=1; i<ps.size(); i++) {
-			Progs.pushProgram(ps[i]);
-		}
-	});
-	cc.reg("push", "push [<p1> [...] -- Push the programs onto the stack.", [] (std::vector<const char *> &ps) {
-		for (unsigned int i=1; i<ps.size(); i++) {
-			Progs.pushProgram(ps[i]);
-		}
-	});
-	cc.reg("pop", "pop -- Pop the last program off of the stack.", [] (std::vector<const char *> &ps) {
-		Progs.popProgram();
-	});
-	cc.reg("colorspace", "colorspace [hsv|rgb] -- Change the program colorspace.", [] (std::vector<const char *> &ps) {
-		if (ps.size() < 2)
-			return;
-		if (strcmp("hsv", ps[1]) == 0) {
-			Progs.setColorspace(HSV);
-		} else if (strcmp("rgb", ps[1]) == 0) {
-			Progs.setColorspace(RGB);
-		}
-	});
 }
 
 void Programs::popProgram()
@@ -99,5 +73,51 @@ void Programs::render() {
 	}
 	led_show();
 }
+
+void Programs::registerCommands(CLI &cc)
+{
+	cc.registerCommand("program", "program [<p1>...<pN>] -- Set the program stack.", this);
+	cc.registerCommand("push", "push [<p1> [...] -- Push the programs onto the stack.", this);
+	cc.registerCommand("pop", "pop -- Pop the last program off of the stack.", this);
+	cc.registerCommand("colorspace", "colorspace [hsv|rgb] -- Change the program colorspace.", this);
+	cc.registerVariable("$name", this);
+}
+
+// Command Listener
+void Programs::onCommand(const std::vector<const char *> &ps)
+{
+	if (strncmp("program", ps[0], CLI_LINE_MAX) == 0) {
+		Progs.clear();
+		for (unsigned int i=1; i<ps.size(); i++) {
+			Progs.pushProgram(ps[i]);
+		}
+	}else if (strncmp("push", ps[0], CLI_LINE_MAX) == 0) {
+		for (unsigned int i=1; i<ps.size(); i++) {
+			Progs.pushProgram(ps[i]);
+		}
+	}else if (strncmp("pop", ps[0], CLI_LINE_MAX) == 0) {
+		Progs.popProgram();
+	}else if (strncmp("colorspace", ps[0], CLI_LINE_MAX) == 0) {
+		if (ps.size() < 2)
+			return;
+		if (strcmp("hsv", ps[1]) == 0) {
+			Progs.setColorspace(HSV);
+		} else if (strcmp("rgb", ps[1]) == 0) {
+			Progs.setColorspace(RGB);
+		}
+	}
+}
+
+void Programs::onAssign(const char *var, const char *val)
+{
+	strncpy(nvram.xbee_name, val, sizeof(nvram.xbee_name));
+	store_nvram();
+}
+
+void Programs::onReference(const char *var, char(*val)[ENVMAX])
+{
+	snprintf(*val, sizeof(nvram.xbee_name), "%s", nvram.xbee_name);
+}
+
 
 Programs Progs;

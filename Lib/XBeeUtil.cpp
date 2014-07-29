@@ -3,21 +3,15 @@
  */
 #include <Arduino.h>
 #include "XBeeUtil.h"
-#include "Environment.h"
+#include "Programs.h"
 #include "nvram.h"
+#include "cli.h"
 
 XBeeUtil XBee(Serial1);
 
 // <maximus> Initialize XBee if NodeID is set to zero generate one
 bool XBeeUtil::init()
 {
-	Env.reg("$name", [] (const char *var, char(*val)[ENVMAX]) {
-		snprintf(*val, sizeof(nvram.xbee_name), "%s", nvram.xbee_name);
-	}, [] (const char *var, const char *val) {
-		strncpy(nvram.xbee_name, val, sizeof(nvram.xbee_name));
-		store_nvram();
-	});
-
 	// First, can we talk
 	port.begin(9600);
 	last_access = 0;
@@ -144,6 +138,27 @@ void XBeeUtil::discover()
 		}
 		Serial.printf("\tName: %s\r\n", (*it).NodeID);
 	}
+
+	// Check for conflicts. (should this be here?)
+	for (unsigned int i=0; i<nodes.size(); i++) {
+		for (unsigned int j=0; j<nodes.size(); j++) {
+			if (i == j)
+				continue;
+			if (strncmp(nodes[i].NodeID, nodes[j].NodeID, sizeof(nodes[j].NodeID)) == 0) {
+				Serial.printf("Conflict detected on node name \"%s\"\r\n", nodes[j].NodeID);
+				Serial.printf("\t  conflicting serial 1: %08x%08x\r\n", nodes[i].SerialHi, nodes[i].SerialLo);
+				Serial.printf("\t  conflicting serial 2: %08x%08x\r\n", nodes[j].SerialHi, nodes[j].SerialLo);
+
+				// Is this me?
+				port.write("ATNI\r");
+				const char *myid = getLine();
+				if (strcmp(myid, nodes[i].NodeID) == 0) {
+					Progs.clear();
+					Progs.pushProgram("red");
+				}
+			}
+		}
+	}
 }
 
 bool XBeeUtil::talk(const char *command, const char *message, uint32_t time)
@@ -228,15 +243,31 @@ const char *XBeeUtil::getLine(uint32_t wait)
 	return NULL;
 }
 
-void XBeeUtil::registerCommands(CLI &cc)
-{
-	cc.reg("ping", "ping -- Show all connected network nodes.", [] (std::vector<const char *> &v) {
-		XBee.discover();
-	});
-}
-
 void XBeeUtil::send(const char *s)
 {
 	exitCommandMode();
 	port.write(s);
+}
+
+void XBeeUtil::registerCommands(CLI &cc)
+{
+	cc.registerCommand("ping", "ping -- Show all connected network nodes.", this);
+	cc.registerVariable("$name", this);
+}
+
+// Command Listener
+void XBeeUtil::onCommand(const std::vector<const char *> &c)
+{
+	XBee.discover();
+}
+
+void XBeeUtil::onAssign(const char *var, const char *val)
+{
+	strncpy(nvram.xbee_name, val, sizeof(nvram.xbee_name));
+	store_nvram();
+}
+
+void XBeeUtil::onReference(const char *var, char(*val)[ENVMAX])
+{
+	snprintf(*val, sizeof(nvram.xbee_name), "%s", nvram.xbee_name);
 }

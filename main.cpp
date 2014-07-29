@@ -12,7 +12,6 @@
 #include "usb_serial.h"
 #include "Lib/XBeeUtil.h"
 #include "cli.h"
-#include "Environment.h"
 #include "Programs.h"
 #include "nvram.h"
 
@@ -74,17 +73,20 @@ void nvram_early_init() {
 extern "C" int main(void)
 {
 	static bool xbee_connect = false;
+	static bool reboot = false;
 
+	analogReference(DEFAULT);
 	pinMode(LED_PIN, OUTPUT);
-
 	led_init();
+
+	begin:
+
 	for (uint8_t i=0; i<nLEDs; i++) {
 		led_set(i, 0);
 	}
 	led_show();
 
 	// Get a random seed
-	analogReference(DEFAULT);
 	randomSeed(analogRead(8));
 
 	// <maximus> USB serial is fucked. The integer argument to the
@@ -105,17 +107,24 @@ extern "C" int main(void)
     // Load the NVRAM into our struct
     nvram_early_init();
 
-    // Reset and configure XBee
-    bool xbee_initialized = xbee_early_init();
-
     // Register the programs that we can run. The names will be the
     // ones used by the CLI
-	Progs.registerProgram("melt", new Melt());
-    Progs.registerProgram("sparkle", new Sparkle());
-    Progs.registerProgram("red", new Red());
-    Progs.registerProgram("fadein", new FadeIn());
-    Progs.registerProgram("fadeout", new FadeOut());
-    Progs.registerProgram("test", new TestProgram());
+    Melt *prog_melt = new Melt();
+    Sparkle *prog_sparkle = new Sparkle();
+    Red *prog_red = new Red();
+    FadeIn *prog_fadein = new FadeIn();
+    FadeOut *prog_fadeout = new FadeOut();
+    TestProgram *prog_testprogram = new TestProgram();
+
+    Progs.registerProgram("melt", prog_melt);
+    Progs.registerProgram("sparkle", prog_sparkle);
+    Progs.registerProgram("red", prog_red);
+    Progs.registerProgram("fadein", prog_fadein);
+    Progs.registerProgram("fadeout", prog_fadeout);
+    Progs.registerProgram("test", prog_testprogram);
+
+    // Reset and configure XBee
+    bool xbee_initialized = xbee_early_init();
 
     // Register the program control commands on both CLIs
     Progs.registerCommands(cc);
@@ -127,23 +136,33 @@ extern "C" int main(void)
     if (!xbee_initialized)
         Progs.pushProgram("red");
 
-    // Command registration. This uses a lambda function (yay). The lambda
-    // functions must not capture variables (i.e. they must have the [] capture
-    // specification. Otherwise you can't make function pointers out of them
-    cc.reg("xbee", "xbee -- Connect XBee", [] (std::vector<const char *> &args) {
-    	xbee_connect = true;
-    });
-
-    cc.reg("xsend", "xsend -- Send command over XBee", [] (std::vector<const char *> &args) {
-    	char cmd[CLI_LINE_MAX];
-    	unsigned int cnt = 0;
-    	for (unsigned int i=1; i<args.size(); i++) {
-        	cnt += snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "%s ", args[i]);
+    class XbeeConnect : public CommandListener {
+    	virtual void onCommand(const std::vector<const char *> &args) {
+    		xbee_connect = true;
     	}
-    	snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "\r\n");
-    	XBee.send(cmd);
-    	cx.exec(cmd);
-    });
+    } xc_cmd;
+    cc.registerCommand("xbee", "xbee -- Connect XBee", &xc_cmd);
+
+    class XbeeCommand : public CommandListener {
+    	virtual void onCommand(const std::vector<const char *> &args) {
+        	char cmd[CLI_LINE_MAX];
+        	unsigned int cnt = 0;
+        	for (unsigned int i=1; i<args.size(); i++) {
+            	cnt += snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "%s ", args[i]);
+        	}
+        	snprintf(&cmd[cnt], CLI_LINE_MAX - cnt, "\r\n");
+        	XBee.send(cmd);
+        	cx.exec(cmd);
+    	}
+    } xc_snd;
+    cc.registerCommand("xsend", "xsend -- Send command over XBee", &xc_snd);
+
+    class Reboot : public CommandListener {
+    	virtual void onCommand(const std::vector<const char *> &args) {
+    		reboot = true;
+    	}
+    } rb_cmd;
+    cc.registerCommand("reboot", "reboot -- Restart the program", &rb_cmd);
 
     // Do not echo a prompt or help to the xbee command line
     cx.setEcho(false);
@@ -168,9 +187,38 @@ extern "C" int main(void)
 			continue;
 		}
 
+		if (reboot)
+			goto reboot;
+
 		cc.do_cli();
 		cx.do_cli();
 
 		Progs.render();
 	}
+
+	reboot:
+
+	// Attempt teardown
+	reboot = false;
+	xbee_connect = false;
+
+	cc.reset();
+	cx.reset();
+
+	Progs.reset();
+
+    delete prog_melt;
+    delete prog_sparkle;
+    delete prog_red;
+    delete prog_fadein;
+    delete prog_fadeout;
+    delete prog_testprogram;
+
+    for (int i=0; i<nLEDs; i++) {
+    	HSVPixels[i] = CHSV(0,0,0);
+    	RGBPixels[i] = 0;
+    	led_set(i,0);
+    }
+
+    goto begin;
 }
