@@ -23,6 +23,7 @@ endif
 
 # Path to your arduino installation
 ARDUINOPATH ?= /home/maximus/Arduino/arduino-1.0.5
+# ARDUINOPATH ?= /Applications/Arduino.app/Contents/Resources/Java
 
 # path location for Teensy Loader, teensy_post_compile and teensy_reboot
 TOOLSPATH = $(ARDUINOPATH)/hardware/tools   # on Linux
@@ -51,7 +52,8 @@ CXX = $(abspath $(COMPILERPATH))/arm-none-eabi-g++
 OBJCOPY = $(abspath $(COMPILERPATH))/arm-none-eabi-objcopy
 SIZE = $(abspath $(COMPILERPATH))/arm-none-eabi-size
 
-PROTOC = protoc 
+PROTOC = protoc
+# PROTOC = /usr/local/bin/protoc
 PYTHON = python 
 
 #COMPILER_PREFIX = arm-linux-gnueabi

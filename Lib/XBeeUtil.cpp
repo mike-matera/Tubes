@@ -20,6 +20,7 @@ bool XBeeUtil::init()
 
 	// First, can we talk
 	port.begin(9600);
+	last_access = 0;
 	if (!enterCommandMode()) {
 		Serial.println("Could not enter command mode.");
 		return false;
@@ -48,6 +49,7 @@ bool XBeeUtil::init()
 	if (!talk(buffer, "Could not set node ID")) {
 		return false;
 	}
+
 	return true;
 }
 
@@ -147,6 +149,7 @@ void XBeeUtil::discover()
 bool XBeeUtil::talk(const char *command, const char *message, uint32_t time)
 {
 	port.write(command);
+	last_access = 0;
 	if (!waitForOK()) {
 		if (message != NULL)
 			Serial.println(message);
@@ -171,9 +174,9 @@ bool XBeeUtil::setBroadcast()
 {
 	if (!enterCommandMode())
 		return false;
-	if (!talk("ATDH0", "Failed to set DH"))
+	if (!talk("ATDH0\r", "Failed to set DH"))
 		return false;
-	if (!talk("ATDLFFFF", "Failed to set DL"))
+	if (!talk("ATDLFFFF\r", "Failed to set DL"))
 		return false;
     return true;
 }
@@ -182,10 +185,11 @@ bool XBeeUtil::enterCommandMode()
 {
 	// Track when we are in command mode. You can (and should) call
 	// this function any time you want to run a command.
+
 	if (last_access == 0 || (systick_millis_count - last_access) >= XBEE_COMMAND_TIMEOUT_MILLIS) {
-		delay(XBEE_GUARD_TIME_MILLIS);
-		port.write("+++");
-		return waitForOK();
+        delay(XBEE_GUARD_TIME_MILLIS);
+        port.write("+++");
+        return waitForOK();
 	}
 	return true;
 }
@@ -202,8 +206,8 @@ bool XBeeUtil::exitCommandMode()
 
 bool XBeeUtil::waitForOK(uint32_t wait)
 {
-	const char *got = getLine(wait);
-	return (got != NULL && strncmp(got, "OK", XBEE_INPUTMAX) == 0);
+    const char *got = getLine(wait);
+    return (got != NULL && strncmp(got, "OK", 2) == 0);
 }
 
 const char *XBeeUtil::getLine(uint32_t wait)

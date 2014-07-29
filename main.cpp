@@ -30,7 +30,7 @@
 static CLI cc(Serial);
 static CLI cx(Serial1);
 
-void xbee_early_init()
+bool xbee_early_init()
 {
 #ifndef NO_XBEE_INIT
 	// Reset the XBee
@@ -41,25 +41,28 @@ void xbee_early_init()
 	delay(100);
 
 	Serial.println("Initializing XBee");
-	if (! XBee.init()) {
-		return;
+	if (!XBee.init()) {
+	    Serial.println("init failed");
+		return false;
 	}
 	XBee.status();
 	Serial.println("Waiting for network association.");
 	uint32_t start = systick_millis_count;
-	while (systick_millis_count - start < 10000) {
+	while (systick_millis_count - start < 20000) {
 		if (XBee.isAssociated()) {
 			goto assoc;
 		}
 	}
-	Serial.println("Did not associate in 10 seconds.");
-	return;
+	Serial.println("Did not associate in 20 seconds.");
+	return false;
 
 	assoc:
 	Serial.println("Scanning network");
 	XBee.discover();
 	XBee.setBroadcast();
 #endif
+
+	return true;
 }
 
 void nvram_early_init() {
@@ -97,13 +100,13 @@ extern "C" int main(void)
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    delay(1999);
+    delay(5000);
 
     // Load the NVRAM into our struct
     nvram_early_init();
 
     // Reset and configure XBee
-    xbee_early_init();
+    bool xbee_initialized = xbee_early_init();
 
     // Register the programs that we can run. The names will be the
     // ones used by the CLI
@@ -120,6 +123,9 @@ extern "C" int main(void)
 
     // Register XBee commands on the USB serial CLI only
     XBee.registerCommands(cc);
+
+    if (!xbee_initialized)
+        Progs.pushProgram("red");
 
     // Command registration. This uses a lambda function (yay). The lambda
     // functions must not capture variables (i.e. they must have the [] capture

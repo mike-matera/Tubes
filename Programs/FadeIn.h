@@ -20,6 +20,11 @@ public:
 private:
 	uint8_t brightness;
 	uint32_t lastrun;
+    uint8_t inverseBrightness;
+    uint8_t increment = 2;
+    uint8_t adjustedIncrement;
+    elapsedMillis timer;
+    uint8_t idealElapsedTime = 30;
 };
 
 #endif /* FADEIN_H_ */
