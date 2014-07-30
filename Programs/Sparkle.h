@@ -24,9 +24,15 @@ public:
 	virtual int render(rgb_buffer) {return 1000;};
 	virtual void teardown();
 
+	virtual void onCommand(const std::vector<const char *> &c);
+	virtual void onAssign(const char *var, const char *val);
+	virtual void onReference(const char *var, char(*val)[ENVMAX]);
+
 private:
 	CellularAuto *ca;
 	int collected_offset[nLEDs];
+	int limit;
+	int envelope;
 };
 
 #endif /* SPARKLE_H_ */

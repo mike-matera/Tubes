@@ -7,8 +7,15 @@
 
 #include "Sparkle.h"
 
+#define ENVELOPE "$sparkle_envelope"
+#define LIMIT    "$sparkle_limit"
+
 Sparkle::Sparkle() {
 	ca = new CellularAuto(nLEDs);
+	limit = 128;
+	envelope = 255;
+	Commands.registerVariable(LIMIT, this);
+	Commands.registerVariable(ENVELOPE, this);
 }
 
 Sparkle::~Sparkle() {
@@ -28,18 +35,11 @@ void Sparkle::teardown() {
 	ca->Reset();
 }
 
-#define LIMIT      128
-#define ENVELOPE   64
-
 int Sparkle::render(hsv_buffer leds) {
 	ca->Advance(26);
 	for (byte j=0; j<nLEDs; j++) {
 
 		int start = collected_offset[j];
-
-		if (collected_offset[j] > LIMIT || collected_offset[j] < -LIMIT) {
-			collected_offset[j] = 0;
-		}
 
 		if (ca->Select(j)) {
 			collected_offset[j]--;
@@ -47,15 +47,51 @@ int Sparkle::render(hsv_buffer leds) {
 			collected_offset[j]++;
 		}
 
+		if (collected_offset[j] > limit) {
+			collected_offset[j] = -limit;
+		}
+
+		if (collected_offset[j] < -limit) {
+			collected_offset[j] = limit;
+		}
+
 		int end = collected_offset[j];
-		float deriv = ((float) start - (float) end) / (float) LIMIT;
 
-		int modulation = 256.0 * deriv;
-		if (modulation < ENVELOPE)
-			modulation = ENVELOPE;
+		float deriv = fabs(((float) start - (float) end) / ((float) limit * 2.0)) * 256;
 
-		leds[j].h = (leds[j].h + ((int) (deriv * 96))) % 256;
-		leds[j].v = leds[j].v + (collected_offset[j] % modulation) - modulation/2;
+		int output = deriv + ((float) leds[j].v) + ((float) envelope) * ((float) collected_offset[j]) / limit;
+		if (output < 0)
+			output = 0;
+		else if (output > 255)
+			output = 255;
+
+		leds[j].v = output;
+		leds[j].s = 255 - deriv;
 	}
-	return 20;
+	return rate;
+}
+
+void Sparkle::onCommand(const std::vector<const char *> &c)
+{
+	Renderable::onCommand(c);
+}
+
+void Sparkle::onAssign(const char *var, const char *val)
+{
+	Renderable::onAssign(var, val);
+	if (strncmp(LIMIT, var, CLI_LINE_MAX) == 0) {
+		limit = strtoul(val, NULL, 0);
+	}else if (strncmp(ENVELOPE, var, CLI_LINE_MAX) == 0) {
+		envelope = strtoul(val, NULL, 0);
+	}
+}
+
+void Sparkle::onReference(const char *var, char(*val)[ENVMAX])
+{
+	Renderable::onReference(var, val);
+	if (strncmp(LIMIT, var, CLI_LINE_MAX) == 0) {
+		snprintf(*val, ENVMAX, "%d", limit);
+	}else if (strncmp(ENVELOPE, var, CLI_LINE_MAX) == 0) {
+		snprintf(*val, ENVMAX, "%d", envelope);
+	}
 }

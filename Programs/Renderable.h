@@ -41,8 +41,10 @@
 #define RENDERABLE_H_
 
 #include "leds.h"
+#include "CommandListener.h"
+#include "cli.h"
 
-class Renderable {
+class Renderable : public CommandListener {
 public:
 	Renderable();
 	virtual ~Renderable();
@@ -52,6 +54,15 @@ public:
 	virtual int render(hsv_buffer) = 0;
 	virtual int render(rgb_buffer) = 0;
 	virtual void teardown();
+
+public:
+	virtual void onCommand(const std::vector<const char *> &c);
+	virtual void onAssign(const char *var, const char *val);
+	virtual void onReference(const char *var, char(*val)[ENVMAX]);
+
+protected:
+	int rate;
+
 };
 
 #endif /* RENDERABLE_H_ */

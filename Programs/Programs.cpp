@@ -51,16 +51,27 @@ void Programs::clear() {
 }
 
 void Programs::render() {
-	for (std::vector<res>::iterator it = programs.begin(); it != programs.end(); it++) {
-		res &r = *it;
-		if (r.t <= systick_millis_count) {
-			if (space == HSV)
-				r.t = r.r->render(HSVPixels) + systick_millis_count;
-			else
-				r.t = r.r->render(RGBPixels) + systick_millis_count;
-		}
+	if (programs.size() == 0)
+		return;
 
+	res &r = programs[0];
+	if (r.t <= systick_millis_count) {
+		if (space == HSV) {
+			r.t = r.r->render(HSVPixels) + systick_millis_count;
+		}else{
+			r.t = r.r->render(RGBPixels) + systick_millis_count;
+		}
+		// The first program asked to render... do the rest.
+		for (unsigned int i=1; i<programs.size(); i++) {
+			res &rr = programs[i];
+			if (space == HSV) {
+				rr.r->render(HSVPixels);
+			}else{
+				rr.r->render(RGBPixels);
+			}
+		}
 	}
+
 	// Render the HSV buffer onto our RGB pixels
 	if (space == HSV) {
 		for (int i=0; i<nLEDs; i++) {

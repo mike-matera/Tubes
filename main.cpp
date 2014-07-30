@@ -9,6 +9,8 @@
 #include "Programs/FadeIn.h"
 #include "Programs/FadeOut.h"
 #include "Programs/Red.h"
+#include "Programs/Wheel.h"
+#include "Programs/SpringSimulator.h"
 #include "usb_serial.h"
 #include "Lib/XBeeUtil.h"
 #include "cli.h"
@@ -115,6 +117,8 @@ extern "C" int main(void)
     FadeIn *prog_fadein = new FadeIn();
     FadeOut *prog_fadeout = new FadeOut();
     TestProgram *prog_testprogram = new TestProgram();
+    Wheel *prog_wheel= new Wheel();
+    SpringSimulator *prog_spring = new SpringSimulator();
 
     Progs.registerProgram("melt", prog_melt);
     Progs.registerProgram("sparkle", prog_sparkle);
@@ -122,6 +126,8 @@ extern "C" int main(void)
     Progs.registerProgram("fadein", prog_fadein);
     Progs.registerProgram("fadeout", prog_fadeout);
     Progs.registerProgram("test", prog_testprogram);
+    Progs.registerProgram("wheel", prog_wheel);
+    Progs.registerProgram("spring", prog_spring);
 
     // Reset and configure XBee
     bool xbee_initialized = xbee_early_init();
@@ -213,6 +219,8 @@ extern "C" int main(void)
     delete prog_fadein;
     delete prog_fadeout;
     delete prog_testprogram;
+    delete prog_wheel;
+    delete prog_spring;
 
     for (int i=0; i<nLEDs; i++) {
     	HSVPixels[i] = CHSV(0,0,0);
