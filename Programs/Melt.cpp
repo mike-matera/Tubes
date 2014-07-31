@@ -10,6 +10,7 @@
 Melt::Melt() {
     random16_add_entropy(random());
 	valueTracker = random16();
+    random16_add_entropy(random());
 	hueTracker = random16();
 	perlins = new Perlins();
 }
