@@ -28,6 +28,14 @@ public:
 	virtual void onAssign(const char *var, const char *val);
 	virtual void onReference(const char *var, char(*val)[ENVMAX]);
 
+	void setLimit(int l) {
+		limit = l;
+	}
+
+	void setEnvelope(int e) {
+		envelope = e;
+	}
+
 private:
 	CellularAuto *ca;
 	int collected_offset[nLEDs];

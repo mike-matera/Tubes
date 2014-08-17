@@ -12,8 +12,8 @@
 
 Sparkle::Sparkle() {
 	ca = new CellularAuto(nLEDs);
-	limit = 128;
-	envelope = 255;
+	limit = 2048;
+	envelope = 16;
 	Commands.registerVariable(LIMIT, this);
 	Commands.registerVariable(ENVELOPE, this);
 }
