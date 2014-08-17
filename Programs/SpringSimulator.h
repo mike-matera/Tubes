@@ -23,21 +23,9 @@ public:
 	virtual void teardown();
 
 private:
-	class Particle {
-	public:
-		Particle() {
-			size = 0; domain = 0; offset = 0;
-		};
-		int render(int pixel);
-		void update();
-
-		int size, domain, offset;
-		Spring s;
-	};
-
-	Particle *p1 = NULL;
-	Particle *p2 = NULL;
-	Particle *p3 = NULL;
+	Spring s0, s1, s2;
+	float s1mv=0.1, s2mv=0.01;
+	int lasti=0;
 };
 
 #endif /* SPRINGSIMULATOR_H_ */
