@@ -79,7 +79,7 @@ void Programs::render() {
 		}
 	}else{
 		for (int i=0; i<nLEDs; i++) {
-			led_set(i, RGBPixels[i]);
+			led_set_rgb(i, RGBPixels[i]);
 		}
 	}
 	led_show();
