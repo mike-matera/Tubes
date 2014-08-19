@@ -6,8 +6,9 @@
 #include "FadeOut.h"
 
 FadeOut::FadeOut() {
-	brightness = 255;
+	brightness = 254;
 	lastrun = 0;
+    inverseBrightness = 0;
 }
 
 FadeOut::~FadeOut() {
@@ -17,6 +18,7 @@ void FadeOut::setup() {
     inverseBrightness = 0;
     timer = 0;
     adjustedIncrement = increment;
+    brightness = 254;
 }
 
 int FadeOut::render(hsv_buffer leds) {
@@ -41,8 +43,8 @@ int FadeOut::render(hsv_buffer leds) {
 
 int FadeOut::render(rgb_buffer leds) {
 	if (brightness > 0) {
-		if (systick_millis_count - lastrun > 20)
-			brightness--;
+		if (systick_millis_count - lastrun > idealElapsedTime)
+			brightness -= increment;
 	}
 
 	for (unsigned int i=0; i<nLEDs; i++) {
