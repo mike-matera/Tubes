@@ -10,7 +10,7 @@
 Wheel::Wheel() {
 	color.h = 0;
 	color.s = 255;
-	color.v = 128;
+	color.v = 0;
 	lastrun = 0;
 	wheel_rate = 1000;
 	Commands.registerVariable("$wheel_rate", this);
