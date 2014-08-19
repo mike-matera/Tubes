@@ -8,8 +8,7 @@
 #include "Wheel.h"
 
 Wheel::Wheel() {
-    random16_add_entropy(random());
-	color.h = random8();
+	color.h = 0;
 	color.s = 255;
 	color.v = 128;
 	lastrun = 0;

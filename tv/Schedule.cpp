@@ -44,8 +44,13 @@ void Schedule::clearShows() {
 void Schedule::nextShow() {
     if (!(*showIterator)->push)
         programs->clear();
+
+	programs->setColorspace((*showIterator)->colorspace);
+
 	for (std::vector<char*>::iterator it = (*showIterator)->layers.begin(); it != (*showIterator)->layers.end(); it++)
 	    programs->pushProgram(*it);
+
+
 	timer = 0;
 }
 

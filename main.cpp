@@ -11,10 +11,11 @@
 #include "Programs/Red.h"
 #include "Programs/Wheel.h"
 #include "Programs/SpringSimulator.h"
+#include "Programs/Flames.h"
 #include "usb_serial.h"
 #include "Lib/XBeeUtil.h"
 #include "cli.h"
-#include "Programs.h"
+#include "Programs/Programs.h"
 #include "nvram.h"
 #include "tv/Show.h"
 #include "tv/Schedule.h"
@@ -27,6 +28,8 @@
 // it's annoying. Also good for unpatched Rev A boards
 //
 #define NO_XBEE_INIT
+
+#define STANDARD_SHOW_LENGTH 1200
 
 // Two command line interpreters. One for the USB serial port
 // and one for XBee. They are able to operate independently.
@@ -108,7 +111,7 @@ extern "C" int main(void)
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    delay(5000);
+    delay(1500);
 
     // Load the NVRAM into our struct
     nvram_early_init();
@@ -123,6 +126,7 @@ extern "C" int main(void)
     TestProgram *prog_testprogram = new TestProgram();
     Wheel *prog_wheel= new Wheel();
     SpringSimulator *prog_spring = new SpringSimulator();
+    Flames *prog_flames = new Flames();
 
     Progs.registerProgram("melt", prog_melt);
     Progs.registerProgram("sparkle", prog_sparkle);
@@ -132,6 +136,7 @@ extern "C" int main(void)
     Progs.registerProgram("test", prog_testprogram);
     Progs.registerProgram("wheel", prog_wheel);
     Progs.registerProgram("spring", prog_spring);
+    Progs.registerProgram("flames", prog_flames);
 
     // Reset and configure XBee
     bool xbee_initialized = xbee_early_init();
@@ -180,26 +185,37 @@ extern "C" int main(void)
 
 	uint32_t linkbaud = Serial.baud();
 
-	tv::Show *show_fadeout = new tv::Show(6, true);
+	tv::Show *show_fadeout = new tv::Show(6, Programs::Colorspace::HSV, true);
 	show_fadeout->PushLayer("fadeout");
 
-	tv::Show *show_melt = new tv::Show(1200, false);
+	tv::Show *show_melt = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
 	show_melt->PushLayer("melt");
 	show_melt->PushLayer("fadein");
 
-	tv::Show *show_add_sparkle= new tv::Show(1200, true);
+	tv::Show *show_add_sparkle= new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, true);
 	show_add_sparkle->PushLayer("sparkle");
 
-	tv::Show *show_wheelsparkle = new tv::Show(1200, false);
+	tv::Show *show_wheelsparkle = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
 	show_wheelsparkle->PushLayer("wheel");
 	show_wheelsparkle->PushLayer("sparkle");
 	show_wheelsparkle->PushLayer("fadein");
+
+	tv::Show *show_flames = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::RGB, false);
+	show_flames->PushLayer("flames");
+	show_flames->PushLayer("fadein");
+
+	tv::Show *show_spring = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
+	show_spring->PushLayer("spring");
+	show_spring->PushLayer("fadein");
 
 	schedule.pushShow(show_melt);
 	schedule.pushShow(show_add_sparkle);
 	schedule.pushShow(show_fadeout);
 	schedule.pushShow(show_wheelsparkle);
 	schedule.pushShow(show_fadeout);
+	schedule.pushShow(show_flames);
+	schedule.pushShow(show_fadeout);
+	schedule.pushShow(show_spring);
 
 	while (1) {
 		if (xbee_connect) {

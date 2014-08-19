@@ -9,9 +9,10 @@
 
 namespace tv {
 
-Show::Show(int sec, bool push) {
+Show::Show(int sec, Programs::Colorspace colorspace, bool push) {
     this->seconds = sec;
     this->push = push;
+    this->colorspace = colorspace;
 }
 
 Show::~Show() {
