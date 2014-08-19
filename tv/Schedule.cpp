@@ -9,49 +9,60 @@
 
 namespace tv {
 
-Schedule::Schedule(Programs *progs) {
-    programs = progs;
+Schedule::Schedule(CLI *c) {
     timer = 0;
+    sleeptime = 0;
     running = false;
+    shell = c;
+    stopped = false;
+    Commands.registerCommand("sleep", "sleep <seconds> -- Tell the scheduler to do nothing for a while", this);
+    Commands.registerCommand("next", "next -- Tell the scheduler to move on (even if it's sleeping)", this);
+    Commands.registerCommand("stop", "stop -- Stop the scheduler", this);
+    Commands.registerCommand("start", "start -- Start the scheduler", this);
 }
 
 Schedule::~Schedule() {
 }
 
+void Schedule::onCommand(const std::vector<const char *> &args) {
+	if (strncmp("sleep", args[0], CLI_LINE_MAX) == 0) {
+		sleeptime = strtoul(args[1],NULL,0);
+		timer = 0;
+	}else if (strncmp("next", args[0], CLI_LINE_MAX) == 0) {
+		sleeptime = 0;
+	}else if (strncmp("start", args[0], CLI_LINE_MAX) == 0) {
+		stopped = false;
+	}else if (strncmp("stop", args[0], CLI_LINE_MAX) == 0) {
+		stopped = true;
+	}
+}
+
 void Schedule::click() {
+	if (stopped)
+		return;
+
     if (!running) {
         showIterator = shows.begin();
-        nextShow();
+        Serial.printf("Schedule: %s\r\n", *showIterator);
+    	shell->exec(*showIterator);
         running = true;
-    } else if (timer >= ((*showIterator)->seconds * 1000)) {
+    } else if (timer >= (sleeptime * 1000)) {
         showIterator++;
 
-        if (showIterator != shows.end())
-            nextShow();
-        else
+        if (showIterator != shows.end()) {
+            Serial.printf("Schedule: %s\r\n", *showIterator);
+        	shell->exec(*showIterator);
+        } else
             running = false;
     }
 }
 
-void Schedule::pushShow(Show *show) {
-    shows.push_back(show);
+void Schedule::push(const char *command) {
+    shows.push_back(command);
 }
 
-void Schedule::clearShows() {
+void Schedule::clear() {
 	shows.clear();
-}
-
-void Schedule::nextShow() {
-    if (!(*showIterator)->push)
-        programs->clear();
-
-	programs->setColorspace((*showIterator)->colorspace);
-
-	for (std::vector<char*>::iterator it = (*showIterator)->layers.begin(); it != (*showIterator)->layers.end(); it++)
-	    programs->pushProgram(*it);
-
-
-	timer = 0;
 }
 
 } /* namespace tv */

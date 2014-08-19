@@ -10,26 +10,30 @@
 
 #include <vector>
 #include "../Programs/Programs.h"
-#include "Show.h"
+#include "cli.h"
 
 namespace tv {
 
-class Schedule {
+class Schedule : public CommandListener {
 public:
-    Schedule(Programs *progs);
+    Schedule(CLI *c);
     virtual ~Schedule();
     void click();
-    void pushShow(Show *show);
-    void clearShows();
+    void push(const char *cmd);
+    void clear();
+
+	virtual void onCommand(const std::vector<const char *> &args);
 
 private:
-    void nextShow();
+    CLI *shell;
 
-    Programs *programs;
-    std::vector<Show*> shows;
-    std::vector<Show*>::iterator showIterator;
+    std::vector<const char *> shows;
+    std::vector<const char *>::iterator showIterator;
     elapsedMillis timer;
+    uint32_t sleeptime;
+
     bool running;
+    bool stopped;
 };
 
 } /* namespace tv */

@@ -17,7 +17,6 @@
 #include "cli.h"
 #include "Programs/Programs.h"
 #include "nvram.h"
-#include "tv/Show.h"
 #include "tv/Schedule.h"
 
 #define XBEE_RESET_PIN       19
@@ -29,14 +28,13 @@
 //
 #define NO_XBEE_INIT
 
-#define STANDARD_SHOW_LENGTH 1200
+#define STANDARD_SHOW_LENGTH "1200"
+#define FADEOUT_SHOW_LENGTH "6"
 
 // Two command line interpreters. One for the USB serial port
 // and one for XBee. They are able to operate independently.
 static CLI cc(Serial);
 static CLI cx(Serial1);
-
-static tv::Schedule schedule(&Progs);
 
 bool xbee_early_init()
 {
@@ -185,37 +183,57 @@ extern "C" int main(void)
 
 	uint32_t linkbaud = Serial.baud();
 
-	tv::Show *show_fadeout = new tv::Show(6, Programs::Colorspace::HSV, true);
-	show_fadeout->PushLayer("fadeout");
+	tv::Schedule schedule(&cc);
 
-	tv::Show *show_melt = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
-	show_melt->PushLayer("melt");
-	show_melt->PushLayer("fadein");
+	// Melt
+	schedule.push("colorspace csv");
+	schedule.push("program melt fadein");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
-	tv::Show *show_add_sparkle= new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, true);
-	show_add_sparkle->PushLayer("sparkle");
+	// Now add sparkle
+	schedule.push("pop");
+	schedule.push("set $sparkle_limit 512");     // fairly active sparkling
+	schedule.push("set $sparkle_envelope 16");   // only small intensity change
+	schedule.push("push sparkle");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
-	tv::Show *show_wheelsparkle = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
-	show_wheelsparkle->PushLayer("wheel");
-	show_wheelsparkle->PushLayer("sparkle");
-	show_wheelsparkle->PushLayer("fadein");
+	// Sparkle with wheel
+	schedule.push("push fadeout");
+	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("set $sparkle_limit 256");     // active sparkling
+	schedule.push("set $sparkle_envelope 256");  // full range
+	schedule.push("set $wheel_rate 10000");      // slow wheel
+	schedule.push("program wheel sparkle");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
-	tv::Show *show_flames = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::RGB, false);
-	show_flames->PushLayer("flames");
-	show_flames->PushLayer("fadein");
+	// Springs
+	schedule.push("push fadeout");
+	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("program spring fadein");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
-	tv::Show *show_spring = new tv::Show(STANDARD_SHOW_LENGTH, Programs::Colorspace::HSV, false);
-	show_spring->PushLayer("spring");
-	show_spring->PushLayer("fadein");
+	// Now add sparkle
+	schedule.push("pop");
+	schedule.push("set $sparkle_limit 512");     // fairly active sparkling
+	schedule.push("set $sparkle_envelope 16");   // only small intensity change
+	schedule.push("push sparkle");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
+	schedule.push("pop");
 
-	schedule.pushShow(show_melt);
-	schedule.pushShow(show_add_sparkle);
-	schedule.pushShow(show_fadeout);
-	schedule.pushShow(show_wheelsparkle);
-	schedule.pushShow(show_fadeout);
-	schedule.pushShow(show_flames);
-	schedule.pushShow(show_fadeout);
-	schedule.pushShow(show_spring);
+	// Flames
+	schedule.push("push fadeout");
+	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("colorspace rgb");
+	schedule.push("program flames fadein");
+	schedule.push("sleep " STANDARD_SHOW_LENGTH);
+	schedule.push("pop");
+	schedule.push("push fadeout");
+	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("colorspace hsv");
+
+	// Curtain
+	schedule.push("push fadeout");
+	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
 
 	while (1) {
 		if (xbee_connect) {
@@ -265,11 +283,7 @@ extern "C" int main(void)
     delete prog_wheel;
     delete prog_spring;
 
-    schedule.clearShows();
-    delete show_fadeout;
-    delete show_melt;
-    delete show_wheelsparkle;
-    delete show_add_sparkle;
+    schedule.clear();
 
     for (int i=0; i<nLEDs; i++) {
     	HSVPixels[i] = CHSV(0,0,0);
