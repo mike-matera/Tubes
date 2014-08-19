@@ -1,7 +1,7 @@
 PLATFORM = Teensy3.1
 BOARD = Candle.B
 
-SUBDIRS = TeensyCore Loader FastLED OctoWS2811 Lib Programs Protocol
+SUBDIRS = TeensyCore Loader FastLED OctoWS2811 Lib Programs tv
 
 TARGET = main
 
@@ -31,7 +31,7 @@ $(TARGET).elf: $(SUBDIRS) $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
 %.hex: %.elf
 	$(SIZE) $<
 	$(OBJCOPY) -O ihex -R .eeprom $< $@
-	#$(abspath $(TOOLSPATH))/teensy_post_compile -file=$(basename $@) -path=$(shell pwd) -tools=$(abspath $(TOOLSPATH))
+	$(abspath $(TOOLSPATH))/teensy_post_compile -file=$(basename $@) -path=$(shell pwd) -tools=$(abspath $(TOOLSPATH))
 	-$(abspath $(TOOLSPATH))/teensy_reboot
 
 # compiler generated dependency info

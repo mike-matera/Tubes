@@ -16,6 +16,8 @@
 #include "cli.h"
 #include "Programs.h"
 #include "nvram.h"
+#include "tv/Show.h"
+#include "tv/Schedule.h"
 
 #define XBEE_RESET_PIN       19
 #define LED_PIN              13
@@ -30,6 +32,8 @@
 // and one for XBee. They are able to operate independently.
 static CLI cc(Serial);
 static CLI cx(Serial1);
+
+static tv::Schedule schedule(&Progs);
 
 bool xbee_early_init()
 {
@@ -104,7 +108,7 @@ extern "C" int main(void)
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    //delay(5000);
+    delay(5000);
 
     // Load the NVRAM into our struct
     nvram_early_init();
@@ -175,6 +179,28 @@ extern "C" int main(void)
 	cc.prompt();
 
 	uint32_t linkbaud = Serial.baud();
+
+	tv::Show *show_fadeout = new tv::Show(6, true);
+	show_fadeout->PushLayer("fadeout");
+
+	tv::Show *show_melt = new tv::Show(1200, false);
+	show_melt->PushLayer("melt");
+	show_melt->PushLayer("fadein");
+
+	tv::Show *show_add_sparkle= new tv::Show(1200, true);
+	show_add_sparkle->PushLayer("sparkle");
+
+	tv::Show *show_wheelsparkle = new tv::Show(1200, false);
+	show_wheelsparkle->PushLayer("wheel");
+	show_wheelsparkle->PushLayer("sparkle");
+	show_wheelsparkle->PushLayer("fadein");
+
+	schedule.pushShow(show_melt);
+	schedule.pushShow(show_add_sparkle);
+	schedule.pushShow(show_fadeout);
+	schedule.pushShow(show_wheelsparkle);
+	schedule.pushShow(show_fadeout);
+
 	while (1) {
 		if (xbee_connect) {
 			if (linkbaud != Serial.baud()) {
@@ -198,6 +224,7 @@ extern "C" int main(void)
 		cc.do_cli();
 		cx.do_cli();
 
+		schedule.click();
 		Progs.render();
 	}
 
@@ -221,6 +248,12 @@ extern "C" int main(void)
     delete prog_testprogram;
     delete prog_wheel;
     delete prog_spring;
+
+    schedule.clearShows();
+    delete show_fadeout;
+    delete show_melt;
+    delete show_wheelsparkle;
+    delete show_add_sparkle;
 
     for (int i=0; i<nLEDs; i++) {
     	HSVPixels[i] = CHSV(0,0,0);

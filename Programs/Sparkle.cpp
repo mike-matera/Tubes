@@ -23,8 +23,9 @@ Sparkle::~Sparkle() {
 }
 
 void Sparkle::setup() {
+    random16_add_entropy(random());
 	for (int i=0; i<4; i++) {
-		ca->Set(random(nLEDs));
+		ca->Set(random16(nLEDs));
 	}
 	for (int i=0; i<nLEDs; i++) {
 		collected_offset[i] = 0;

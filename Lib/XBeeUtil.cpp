@@ -34,11 +34,6 @@ bool XBeeUtil::init()
 		Serial.printf("Error changing baud rate: %s\r\n", bd);
 	}
 
-	// Now set runtime parameters
-	if (!talk("ATID aa995566\r", "Could not set PAN ID")) {
-		return false;
-	}
-
 	snprintf(buffer, XBEE_INPUTMAX, "ATNI%s\r", nvram.xbee_name);
 	if (!talk(buffer, "Could not set node ID")) {
 		return false;
