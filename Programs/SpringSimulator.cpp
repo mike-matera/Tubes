@@ -26,17 +26,17 @@ void SpringSimulator::setup()
 	int cog = random(256);
 
 	s0.setPosition(energy);
-	s0.setSpringK(0.000001);
+	s0.setSpringK(0.0000001);
 	s0.setDampingK(0.0);
 	s0.setVelocity(0);
 
 	s1.setPosition(-2*cog/3);
-	s1.setSpringK(0.00001);
+	s1.setSpringK(0.000001);
 	s1.setDampingK(0.00);
 	s1.setVelocity(0);
 
 	s2.setPosition(3*cog/5);
-	s2.setSpringK(0.000001);
+	s2.setSpringK(0.0000001);
 	s2.setDampingK(0.00);
 	s2.setVelocity(0);
 }
@@ -57,11 +57,6 @@ int SpringSimulator::render(hsv_buffer leds)
 		s2mv = v;
 	float s2scale = abs(v) * (8 / s2mv) + 1 ;
 
-	//int fuck = -12 % 16;
-	//Serial.println(fuck);
-	// == -12
-
-	uint8_t h = 96 + lasti / (nLEDs * 8);
 	lasti=0;
 	for (int i=0; i<nLEDs; i++) {
 		int pos = nLEDs/2 - i;
@@ -82,16 +77,6 @@ int SpringSimulator::render(hsv_buffer leds)
 		if (bd > 255)
 			bd = 255;
 
-		/*
-		int bd = abs(pos - s2.getPosition());
-		bd = bd % 256;
-		bd = bd * s2scale;
-		if (bd> 255)
-			bd = 255;
-		bd = 255;
-		*/
-
-		//leds[i].h = h;
 		float hh;
 		if (gd == 0 && bd == 0)
 			hh = 0.5;
