@@ -58,6 +58,7 @@ int SpringSimulator::render(hsv_buffer leds)
 	float s2scale = abs(v) * (8 / s2mv) + 1 ;
 
 	lasti=0;
+	static float debug_last_hh = 0;
 	for (int i=0; i<nLEDs; i++) {
 		int pos = nLEDs/2 - i;
 
@@ -68,6 +69,7 @@ int SpringSimulator::render(hsv_buffer leds)
 		gd = gd * s1scale;
 		if (gd > 255)
 			gd = 255;
+		gd = 255 - gd;
 
 		offset = (1024 / (s2scale + 4));
 		float bd = (pos - s2.getPosition()) / offset;
@@ -76,18 +78,14 @@ int SpringSimulator::render(hsv_buffer leds)
 		bd = bd * s2scale;
 		if (bd > 255)
 			bd = 255;
+		bd = 255 - bd;
 
-		float hh;
-		if (gd == 0 && bd == 0)
-			hh = 0.5;
-		else
-			hh = bd / (gd + bd);
-
-		hh = 106 + (32 * hh);
+		float hh = bd / (gd + bd);
+		hh = 106 + (52 * hh);
 		leds[i].h = hh;
 		leds[i].s = 255;
 
-		uint8_t value = ((255 - gd) + (255 - bd)) / 2;
+		uint8_t value = (gd + bd) / 2;
 		lasti+= value;
 		leds[i].v = value;
 	}
