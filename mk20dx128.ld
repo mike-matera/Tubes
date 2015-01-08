@@ -63,6 +63,13 @@ SECTIONS
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
 		__exidx_end = .;
 	} > FLASH
+
+	.ARM.extab : {
+		__extab_start = .;
+		*(.ARM.extab* .gnu.linkonce.armextab.*)
+		__extab_end = .;
+	} > FLASH
+
 	_etext = .;
 
 	.usbdescriptortable (NOLOAD) : {
@@ -102,7 +109,6 @@ SECTIONS
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
-		__bss_end = .;
 	} > RAM
 
 	_estack = ORIGIN(RAM) + LENGTH(RAM);

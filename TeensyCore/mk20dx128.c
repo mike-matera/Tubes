@@ -30,8 +30,6 @@
 
 #include "mk20dx128.h"
 
-
-extern unsigned long _stext;
 extern unsigned long _etext;
 extern unsigned long _sdata;
 extern unsigned long _edata;
@@ -558,6 +556,7 @@ void ResetHandler(void)
 
 	//init_pins();
 	__enable_irq();
+	__libc_init_array();
 
 	_init_Teensyduino_internal_();
 	if (RTC_SR & RTC_SR_TIF) {
@@ -566,20 +565,9 @@ void ResetHandler(void)
 		rtc_set(TIME_T);
 	}
 
-	__libc_init_array();
-
 	startup_late_hook();
 	main();
 	while (1) ;
-}
-
-char *__brkval = (char *)&_ebss;
-
-void * _sbrk(int incr)
-{
-	char *prev = __brkval;
-	__brkval += incr;
-	return prev;
 }
 
 __attribute__((weak)) 
@@ -660,3 +648,29 @@ int nvic_execution_priority(void)
 	return priority;
 }
 
+// by maximus...
+char *__brkval = (char *)&_ebss;
+
+int * _brk(int val)
+{
+	__brkval = (char *) val;
+	return 0;
+}
+
+void * _sbrk(int incr)
+{
+	char *prev = __brkval;
+	__brkval += incr;
+	return prev;
+}
+
+int _kill(int pid, int sig)
+{
+	// duuh.
+	return 0;
+}
+
+int _getpid()
+{
+	return 0;
+}
