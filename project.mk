@@ -22,8 +22,8 @@ ifeq ($(strip $(BOARD)), Candle.B)
 endif
 
 # Path to your arduino installation
-# ARDUINOPATH ?= /home/maximus/Arduino/arduino-1.0.5
-ARDUINOPATH ?= /Applications/Arduino.app/Contents/Resources/Java
+ARDUINOPATH ?= /home/maximus/Arduino/arduino-1.0.5
+#ARDUINOPATH ?= /Applications/Arduino.app/Contents/Resources/Java
 
 # path location for Teensy Loader, teensy_post_compile and teensy_reboot
 TOOLSPATH = $(ARDUINOPATH)/hardware/tools   # on Linux
@@ -32,7 +32,7 @@ TOOLSPATH = $(ARDUINOPATH)/hardware/tools   # on Linux
 COMPILERPATH = $(ARDUINOPATH)/hardware/tools/arm-none-eabi/bin
 
 # CPPFLAGS = compiler options for C and C++
-CPPFLAGS = -fdata-sections -ffunction-sections -Wall -g -Os -mcpu=cortex-m4 -mthumb -nostdlib -MMD $(OPTIONS) $(INCLUDES)
+CPPFLAGS = -fdata-sections -ffunction-sections -Wall -g -Os -mfloat-abi=soft -msoft-float -mcpu=cortex-m4 -mthumb -nostdlib -MMD $(OPTIONS) $(INCLUDES)
 
 # compiler options for C++ only
 CXXFLAGS = -std=gnu++0x -felide-constructors -fno-exceptions -fno-rtti
@@ -47,17 +47,13 @@ LDFLAGS = -Os -fdata-sections -ffunction-sections -Wl,--gc-sections -mcpu=cortex
 LIBS = -lm
 
 # names for the compiler programs
-CC = $(abspath $(COMPILERPATH))/arm-none-eabi-gcc
-CXX = $(abspath $(COMPILERPATH))/arm-none-eabi-g++
-OBJCOPY = $(abspath $(COMPILERPATH))/arm-none-eabi-objcopy
-SIZE = $(abspath $(COMPILERPATH))/arm-none-eabi-size
+COMPILER_PREFIX = arm-none-eabi
+CC = $(abspath $(COMPILERPATH))/$(COMPILER_PREFIX)-gcc
+CXX = $(abspath $(COMPILERPATH))/$(COMPILER_PREFIX)-g++
+OBJCOPY = $(abspath $(COMPILERPATH))/$(COMPILER_PREFIX)-objcopy
+SIZE = $(abspath $(COMPILERPATH))/$(COMPILER_PREFIX)-size
+OBJDUMP = $(abspath $(COMPILERPATH))/$(COMPILER_PREFIX)-objdump
 
 # PROTOC = protoc
 PROTOC = /usr/local/bin/protoc
 PYTHON = python 
-
-#COMPILER_PREFIX = arm-linux-gnueabi
-#CC = $(COMPILER_PREFIX)-gcc
-#CXX = $(COMPILER_PREFIX)-g++
-#OBJCOPY = $(COMPILER_PREFIX)-objcopy
-#SIZE = $(COMPILER_PREFIX)-size
