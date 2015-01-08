@@ -27,6 +27,7 @@ make.defs:
 $(TARGET).elf: LINKALL = $(shell find . -name '*.o')
 $(TARGET).elf: $(SUBDIRS) $(OBJS) $(LINKSCRIPT) $(LINKALL) Makefile
 	$(CXX) $(LDFLAGS) -o $@ $(LINKALL) $(LIBS) 
+	$(OBJDUMP) -x -S $(TARGET).elf > $(TARGET).dump 
 
 %.hex: %.elf
 	$(SIZE) $<
