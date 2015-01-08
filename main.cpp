@@ -186,7 +186,7 @@ extern "C" int main(void)
 	tv::Schedule schedule(&cc);
 
 	// Melt
-	schedule.push("colorspace csv");
+	schedule.push("colorspace hsv");
 	schedule.push("program melt fadein");
 	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
@@ -200,9 +200,12 @@ extern "C" int main(void)
 	// Sparkle with wheel
 	schedule.push("push fadeout");
 	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("set $wheel_value 0");
+	schedule.push("set $wheel_origin 127");
+	schedule.push("set $wheel_range 38");
+	schedule.push("set $wheel_rate 10000");      // slow wheel
 	schedule.push("set $sparkle_limit 256");     // active sparkling
 	schedule.push("set $sparkle_envelope 256");  // full range
-	schedule.push("set $wheel_rate 10000");      // slow wheel
 	schedule.push("program wheel sparkle");
 	schedule.push("sleep " STANDARD_SHOW_LENGTH);
 
@@ -221,6 +224,7 @@ extern "C" int main(void)
 	schedule.push("pop");
 
 	// Flames
+	/*
 	schedule.push("push fadeout");
 	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
 	schedule.push("colorspace rgb");
@@ -230,6 +234,7 @@ extern "C" int main(void)
 	schedule.push("push fadeout");
 	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
 	schedule.push("colorspace hsv");
+	*/
 
 	// Curtain
 	schedule.push("push fadeout");

@@ -18,6 +18,8 @@ public:
 	virtual ~Wheel();
 
 public:
+	virtual void setup();
+
 	virtual int render(hsv_buffer);
 	virtual int render(rgb_buffer);
 
@@ -26,8 +28,15 @@ public:
 	virtual void onReference(const char *var, char(*val)[ENVMAX]);
 
 private:
+
+	void update();
+
 	CHSV color;
 	unsigned int lastrun;
 	unsigned int wheel_rate;
+	unsigned int wheel_origin;
+	unsigned int wheel_range;
+	unsigned int wheel_value;
+	bool wheel_up;
 };
 #endif /* WHEEL_H_ */
