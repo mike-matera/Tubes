@@ -13,7 +13,7 @@ XBeeUtil XBee(Serial1);
 bool XBeeUtil::init()
 {
 	// First, can we talk
-	port.begin(9600);
+	port.begin(115200);
 	last_access = 0;
 	if (!enterCommandMode()) {
 		Serial.println("Could not enter command mode.");

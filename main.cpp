@@ -27,7 +27,7 @@
 // XBee initialization takes time and if you're testing programs
 // it's annoying. Also good for unpatched Rev A boards
 //
-#define NO_XBEE_INIT
+//#define NO_XBEE_INIT
 
 #define STANDARD_SHOW_LENGTH "1200"
 #define FADEOUT_SHOW_LENGTH "6"
@@ -56,6 +56,12 @@ bool xbee_early_init()
 	Serial.println("Waiting for network association.");
 	uint32_t start = systick_millis_count;
 	while (systick_millis_count - start < 20000) {
+		for (int i=0; i<nLEDs; i++) {
+			for (int j=0; j<nLEDs; j++) {
+				led_set(j, (i == j)? 0x0000ff : 0x000000);
+			}
+			led_show();
+		}
 		if (XBee.isAssociated()) {
 			goto assoc;
 		}
