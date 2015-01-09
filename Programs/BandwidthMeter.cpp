@@ -13,6 +13,11 @@ BandwidthMeter::BandwidthMeter() {
 	err.setSpringK(0.01);
 	err.setDampingK(0.0);
 	err.setVelocity(0);
+
+	for (int i=0; i<nLEDs; i++) {
+		nextvals[i] = 0;
+		oldvals[i] = 0;
+	}
 }
 
 BandwidthMeter::~BandwidthMeter() {

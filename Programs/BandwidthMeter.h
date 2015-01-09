@@ -11,7 +11,7 @@
 #include "Renderable.h"
 #include "Lib/Spring.h"
 
-#define SAMPLES     1800
+#define SAMPLES       900
 #define DEADLINE    10000
 #define AVG         (SAMPLES/nLEDs)
 

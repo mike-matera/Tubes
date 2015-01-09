@@ -78,6 +78,35 @@ void nvram_early_init() {
 	Serial.printf("  XBee Name  : %s\r\n", nvram.xbee_name);
 }
 
+void led_test() {
+	unsigned int colortest[] = {0xff0000, 0x00ff00, 0x0000ff, 0xffffff};
+	for (int color=0; color<4; color++) {
+		for (unsigned int pos=0; pos<nLEDs; pos++) {
+			for (int i=0; i<nLEDs; i++) {
+				float gd = abs((i - pos) * 32);
+				if (gd > 255)
+					gd = 255;
+
+				int rr = (colortest[color] & 0xff0000) >> 16;
+				int gg = (colortest[color] & 0x00ff00) >>  8;
+				int bb = (colortest[color] & 0x0000ff) >>  0;
+
+				rr = rr - gd;
+				gg = gg - gd;
+				bb = bb - gd;
+
+				if (rr < 0) rr = 0;
+				if (gg < 0) gg = 0;
+				if (bb < 0) bb = 0;
+
+				led_set(i, CRGB(rr,gg,bb));
+			}
+			led_show();
+			delay(5);
+		}
+	}
+}
+
 extern "C" int main(void)
 {
 	static bool xbee_connect = false;
@@ -103,14 +132,17 @@ extern "C" int main(void)
 	// begin() is this way for compatibility with Arduino.
     Serial.begin(115200);
 
+    // Simple test pattern.. buys time so we don't need to busy wait
+    led_test();
+
 	// <minty> status check
-    for (int i=0; i<nLEDs; i++)
-        led_set(i, CHSV(96, 255, 50));
+    //for (int i=0; i<nLEDs; i++)
+    //   led_set(i, CHSV(96, 255, 50));
 
     // <maximus> Uncomment this if you want to be able to see the
     // nvram printout. My terminal emulator doesn't reconnect fast
     // enough to see it at boot unless there's some delay.
-    delay(1500);
+    //delay(1500);
 
     // Load the NVRAM into our struct
     nvram_early_init();
