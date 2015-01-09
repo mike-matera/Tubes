@@ -12,6 +12,7 @@
 #include "Programs/Wheel.h"
 #include "Programs/SpringSimulator.h"
 #include "Programs/Flames.h"
+#include "Programs/BandwidthMeter.h"
 #include "usb_serial.h"
 #include "Lib/XBeeUtil.h"
 #include "cli.h"
@@ -114,27 +115,8 @@ extern "C" int main(void)
     // Load the NVRAM into our struct
     nvram_early_init();
 
-    // Register the programs that we can run. The names will be the
-    // ones used by the CLI
-    Melt *prog_melt = new Melt();
-    Sparkle *prog_sparkle = new Sparkle();
-    Red *prog_red = new Red();
-    FadeIn *prog_fadein = new FadeIn();
-    FadeOut *prog_fadeout = new FadeOut();
-    TestProgram *prog_testprogram = new TestProgram();
-    Wheel *prog_wheel= new Wheel();
-    SpringSimulator *prog_spring = new SpringSimulator();
-    Flames *prog_flames = new Flames();
-
-    Progs.registerProgram("melt", prog_melt);
-    Progs.registerProgram("sparkle", prog_sparkle);
-    Progs.registerProgram("red", prog_red);
-    Progs.registerProgram("fadein", prog_fadein);
-    Progs.registerProgram("fadeout", prog_fadeout);
-    Progs.registerProgram("test", prog_testprogram);
-    Progs.registerProgram("wheel", prog_wheel);
-    Progs.registerProgram("spring", prog_spring);
-    Progs.registerProgram("flames", prog_flames);
+    BandwidthMeter *prog_meter = new BandwidthMeter();
+    Progs.registerProgram("meter", prog_meter);
 
     // Reset and configure XBee
     bool xbee_initialized = xbee_early_init();
@@ -186,59 +168,10 @@ extern "C" int main(void)
 	tv::Schedule schedule(&cc);
 
 	// Melt
-	schedule.push("colorspace hsv");
-	schedule.push("program melt fadein");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-
-	// Now add sparkle
-	schedule.push("pop");
-	schedule.push("set $sparkle_limit 512");     // fairly active sparkling
-	schedule.push("set $sparkle_envelope 16");   // only small intensity change
-	schedule.push("push sparkle");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-
-	// Sparkle with wheel
-	schedule.push("push fadeout");
-	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
-	schedule.push("set $wheel_value 0");
-	schedule.push("set $wheel_origin 127");
-	schedule.push("set $wheel_range 38");
-	schedule.push("set $wheel_rate 10000");      // slow wheel
-	schedule.push("set $sparkle_limit 256");     // active sparkling
-	schedule.push("set $sparkle_envelope 256");  // full range
-	schedule.push("program wheel sparkle");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-
-	// Springs
-	schedule.push("push fadeout");
-	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
-	schedule.push("program spring fadein");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-
-	// Now add sparkle
-	schedule.push("pop");
-	schedule.push("set $sparkle_limit 512");     // fairly active sparkling
-	schedule.push("set $sparkle_envelope 16");   // only small intensity change
-	schedule.push("push sparkle");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-	schedule.push("pop");
-
-	// Flames
-	/*
-	schedule.push("push fadeout");
-	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
 	schedule.push("colorspace rgb");
-	schedule.push("program flames fadein");
-	schedule.push("sleep " STANDARD_SHOW_LENGTH);
-	schedule.push("pop");
-	schedule.push("push fadeout");
-	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
-	schedule.push("colorspace hsv");
-	*/
-
-	// Curtain
-	schedule.push("push fadeout");
-	schedule.push("sleep " FADEOUT_SHOW_LENGTH);
+	schedule.push("set $rate 50");
+	schedule.push("program meter");
+	schedule.push("stop");
 
 	while (1) {
 		if (xbee_connect) {
@@ -279,14 +212,7 @@ extern "C" int main(void)
 	Progs.reset();
 	Commands.reset();
 
-    delete prog_melt;
-    delete prog_sparkle;
-    delete prog_red;
-    delete prog_fadein;
-    delete prog_fadeout;
-    delete prog_testprogram;
-    delete prog_wheel;
-    delete prog_spring;
+    delete prog_meter;
 
     schedule.clear();
 
