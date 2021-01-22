@@ -9,7 +9,7 @@
 #define SPRINGSIMULATOR_H_
 
 #include "Renderable.h"
-#include "Lib/Spring.h"
+#include "Spring.h"
 
 class SpringSimulator : public Renderable {
 public:

@@ -4,7 +4,7 @@
  */
 
 #include "Flames.h"
-#include "Lib/ColorUtil.h"
+#include "ColorUtil.h"
 
 Flames::Flames() {
     random16_add_entropy(random());

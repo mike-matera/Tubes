@@ -9,7 +9,7 @@
 #define SCHEDULE_H_
 
 #include <vector>
-#include "../Programs/Programs.h"
+#include "Programs.h"
 #include "cli.h"
 
 namespace tv {
