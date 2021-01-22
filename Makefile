@@ -8,7 +8,7 @@ SKETCH = Tubes.ino
 
 all:
 	-mkdir _build
-	$(BUILDER) -compile -hardware $(HARDWARE) -fqbn $(FQBN) -tools $(TOOLS) -libraries ./Lib -build-cache ./_build -build-path ./_build $(SKETCH)
+	$(BUILDER) -compile -hardware $(HARDWARE) -fqbn $(FQBN) -tools $(TOOLS) -build-cache ./_build -build-path ./_build $(SKETCH)
 
 clean:
 	-rm -rf _build 
