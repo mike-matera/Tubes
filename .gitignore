@@ -11,3 +11,5 @@ make.defs
 *.pyc
 nanopb_pb2.py
 plugin_pb2.py
+_build
+
